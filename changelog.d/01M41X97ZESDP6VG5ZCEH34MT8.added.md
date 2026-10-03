@@ -1,0 +1,1 @@
+mdcat: the lognd fork identifies itself (FORK.md, a README note, a +lognd version suffix) and scripts/sync-upstream.sh merges upstream releases, resolving the expected conflicts in the version line, Cargo.lock and the README note.

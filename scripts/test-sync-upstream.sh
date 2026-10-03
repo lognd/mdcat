@@ -73,5 +73,9 @@ if (cd "$fork" && scripts/sync-upstream.sh --no-check 2>"$work/stderr"); then
 fi
 grep -q 'src/main.rs' "$work/stderr" || fail "src/main.rs is not listed: $(cat "$work/stderr")"
 git -C "$fork" rev-parse -q --verify MERGE_HEAD >/dev/null || fail "the merge is not left in progress"
+git -C "$fork" checkout -q --ours -- src/main.rs
+git -C "$fork" add src/main.rs
+(cd "$fork" && scripts/sync-upstream.sh --continue --no-check) || fail "--continue did not finish the merge"
+git -C "$fork" rev-parse -q --verify MERGE_HEAD >/dev/null && fail "the merge is still in progress"
 log "case 2 passed"
 log "all passed"
