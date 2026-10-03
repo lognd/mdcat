@@ -8,7 +8,7 @@ points = 5
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T11:51:23Z"
-updated = "2026-10-03T12:11:34Z"
+updated = "2026-10-03T12:11:38Z"
 persona = "a reader of long documentation sets"
 capability = "page through the book and move between files with Left/Right"
 outcome_text = "moving to the next document is a pager action, not a new command"
@@ -33,7 +33,7 @@ bound = true
 
 [[acceptance]]
 text = "Given the pager is open, When it draws, Then the bottom line shows the title, n/N, the order source, the scroll percent and the key hint"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given the terminal is resized, When the pager redraws, Then documents re-render at the new width; and q quits restoring the terminal"
