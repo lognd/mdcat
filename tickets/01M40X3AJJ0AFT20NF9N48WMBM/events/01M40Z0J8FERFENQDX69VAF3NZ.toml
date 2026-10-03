@@ -1,0 +1,24 @@
+kind = "evidence"
+accepts = [4]
+captured_at = "2026-10-03T13:24:46Z"
+digest = "64cae75dc1e7b1ddfdfaa238c3e42a2849400fdfd4ded254596a9b4d485475f8"
+exit_code = 0
+inline = """
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s
+────────────
+ Nextest run ID 86ebc65d-2cf1-4468-af24-b7147b828253 with nextest profile: default
+    Starting 1 test across 4 binaries (101 tests skipped)
+        PASS [   0.012s] (1/1) mdcat::bin/mdcat book::contents::tests::unlisted_runs_get_a_heading_the_selection_skips
+────────────
+     Summary [   0.013s] 1 test run: 1 passed, 101 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(unlisted_runs_get_a_heading_the_selection_skips)'"
+size = 518
+status = "measured"
+tests = ["book::contents::tests::unlisted_runs_get_a_heading_the_selection_skips"]
+at = "2026-10-03T13:24:46Z"
+actor = "lognd"
+rev = 1

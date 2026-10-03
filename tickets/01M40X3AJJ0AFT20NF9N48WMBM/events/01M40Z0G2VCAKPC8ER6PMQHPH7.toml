@@ -1,0 +1,29 @@
+kind = "evidence"
+accepts = [3]
+captured_at = "2026-10-03T13:24:44Z"
+digest = "0872132e450f4aff5c2ad4bebfe8521f38f67358ed8f143f359ee1cb90e6ee1a"
+exit_code = 0
+inline = """
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s
+────────────
+ Nextest run ID d35e20b5-acf4-4928-b346-ad47c38abb00 with nextest profile: default
+    Starting 2 tests across 4 binaries (100 tests skipped)
+        PASS [   0.020s] (1/2) mdcat::bin/mdcat book::order::tests::index_table_orders_its_directory_and_appends_the_rest
+        PASS [   0.151s] (2/2) mdcat::bin/mdcat book::pager::tests::o_switches_to_the_next_order_keeping_the_document_and_its_scroll
+────────────
+     Summary [   0.152s] 2 tests run: 2 passed, 100 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(o_switches_to_the_next_order_keeping_the_document_and_its_scroll) | test(index_table_orders_its_directory_and_appends_the_rest)'"
+size = 864
+status = "measured"
+tests = ["book::order::tests::index_table_orders_its_directory_and_appends_the_rest", "book::pager::tests::o_switches_to_the_next_order_keeping_the_document_and_its_scroll"]
+at = "2026-10-03T13:24:44Z"
+actor = "lognd"
+rev = 1

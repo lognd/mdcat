@@ -2,13 +2,13 @@
 id = "01M40X3AJJ0AFT20NF9N48WMBM"
 title = "Choose the book order with --order, a config default and the o key"
 type = "story"
-category = "todo"
+category = "in-progress"
 priority = "medium"
 points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T12:51:20Z"
-updated = "2026-10-03T12:51:20Z"
+updated = "2026-10-03T13:24:46Z"
 persona = "a reader of long documentation sets"
 capability = "switch between detected reading orders from the command line, config or inside the pager"
 outcome_text = "when detection guesses wrong I can pick the order myself"
@@ -25,17 +25,17 @@ target = "01M40X3AB22EBN7RDCC7T282Z9"
 
 [[acceptance]]
 text = "Given --order auto, summary, index, frontmatter or path (or defaults.book_order in the config), When a book resolves, Then only that source is used, falling back to path order where it is absent; summary fails if there is no SUMMARY.md"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given the pager, When o is pressed, Then the book switches to the next order that applies, staying on the current document and keeping scroll positions"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given the status line, When it draws, Then it names the order sources in use and how many documents were appended as unlisted"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given unlisted documents, When the table of contents opens, Then they appear under an Unlisted heading that cannot be selected"
-bound = false
+bound = true
 +++
