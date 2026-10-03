@@ -499,6 +499,7 @@ fn main() {
                 } else {
                     mdcat::args::ResourceAccess::Remote
                 };
+                // frob:todo 01M40T35HH9QCH2V0YJ8198QGZ
                 // TODO: Handle this error properly
                 let resource_handler = create_resource_handler(resource_access).unwrap();
                 if args.watch {
