@@ -8,7 +8,7 @@ points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T12:51:20Z"
-updated = "2026-10-03T13:24:42Z"
+updated = "2026-10-03T13:24:43Z"
 persona = "a reader of long documentation sets"
 capability = "switch between detected reading orders from the command line, config or inside the pager"
 outcome_text = "when detection guesses wrong I can pick the order myself"
@@ -29,7 +29,7 @@ bound = true
 
 [[acceptance]]
 text = "Given the pager, When o is pressed, Then the book switches to the next order that applies, staying on the current document and keeping scroll positions"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given the status line, When it draws, Then it names the order sources in use and how many documents were appended as unlisted"
