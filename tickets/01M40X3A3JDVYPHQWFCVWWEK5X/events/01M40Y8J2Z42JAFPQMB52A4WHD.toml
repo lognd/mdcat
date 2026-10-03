@@ -1,0 +1,23 @@
+kind = "evidence"
+accepts = [3]
+captured_at = "2026-10-03T13:11:40Z"
+digest = "52819bc083740ec5974865f4e031048fcd23ea0a14876bbfd8aff426e6da4fb2"
+exit_code = 0
+inline = """
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s
+────────────
+ Nextest run ID 04d3cfb7-6bbe-4347-aacf-d296d25508e3 with nextest profile: default
+    Starting 1 test across 4 binaries (87 tests skipped)
+        PASS [   0.031s] (1/1) mdcat::bin/mdcat book::order::tests::a_readme_naming_too_little_is_not_an_index
+────────────
+     Summary [   0.033s] 1 test run: 1 passed, 87 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(a_readme_naming_too_little_is_not_an_index)'"
+size = 456
+status = "measured"
+tests = ["book::order::tests::a_readme_naming_too_little_is_not_an_index"]
+at = "2026-10-03T13:11:40Z"
+actor = "lognd"
+rev = 1

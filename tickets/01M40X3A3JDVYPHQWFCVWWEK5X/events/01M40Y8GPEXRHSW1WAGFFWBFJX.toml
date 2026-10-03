@@ -1,0 +1,24 @@
+kind = "evidence"
+accepts = [2]
+captured_at = "2026-10-03T13:11:38Z"
+digest = "0ab3d317bcedebdb40c271f29f9a3e3b7abf736e148cbfde71e025d6ee36eb09"
+exit_code = 0
+inline = """
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+────────────
+ Nextest run ID fe7c00a1-015c-4436-b3ff-34b5f66034fb with nextest profile: default
+    Starting 2 tests across 4 binaries (86 tests skipped)
+        PASS [   0.015s] (1/2) mdcat::bin/mdcat book::order::index::tests::link_text_is_not_scanned_for_names
+        PASS [   0.023s] (2/2) mdcat::bin/mdcat book::order::index::tests::links_anywhere_and_names_in_tables_and_lists_count_in_order
+────────────
+     Summary [   0.024s] 2 tests run: 2 passed, 86 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(links_anywhere_and_names_in_tables_and_lists_count_in_order) | test(link_text_is_not_scanned_for_names)'"
+size = 592
+status = "measured"
+tests = ["book::order::index::tests::link_text_is_not_scanned_for_names", "book::order::index::tests::links_anywhere_and_names_in_tables_and_lists_count_in_order"]
+at = "2026-10-03T13:11:38Z"
+actor = "lognd"
+rev = 1

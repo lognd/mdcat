@@ -1,0 +1,24 @@
+kind = "evidence"
+accepts = [4]
+captured_at = "2026-10-03T13:11:42Z"
+digest = "68d565d4f2a13963448fa3c3722c842040ef7b4f310dc1752cb7e1239acaed51"
+exit_code = 0
+inline = """
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s
+────────────
+ Nextest run ID fafe5da6-5645-4ba0-a21d-0a1ceb19b55a with nextest profile: default
+    Starting 2 tests across 4 binaries (86 tests skipped)
+        PASS [   0.046s] (1/2) mdcat::bin/mdcat book::order::tests::index_table_orders_its_directory_and_appends_the_rest
+        PASS [   0.054s] (2/2) mdcat::bin/mdcat book::order::tests::index_file_target_is_read_as_the_index_of_its_directory
+────────────
+     Summary [   0.056s] 2 tests run: 2 passed, 86 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(index_table_orders_its_directory_and_appends_the_rest) | test(index_file_target_is_read_as_the_index_of_its_directory)'"
+size = 593
+status = "measured"
+tests = ["book::order::tests::index_table_orders_its_directory_and_appends_the_rest", "book::order::tests::index_file_target_is_read_as_the_index_of_its_directory"]
+at = "2026-10-03T13:11:42Z"
+actor = "lognd"
+rev = 1
