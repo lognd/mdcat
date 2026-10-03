@@ -8,12 +8,12 @@ points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T11:51:23Z"
-updated = "2026-10-03T11:51:35Z"
+updated = "2026-10-03T11:52:08Z"
 persona = "a reader of long documentation sets"
 capability = "point mdcat at a directory or SUMMARY.md and get every document in reading order"
 outcome_text = "I read a doc set in its intended order without listing files by hand"
 idempotency_key = "mdcat-book-order"
-scope = ["src/book/**", "src/args.rs", "src/main.rs", "src/lib.rs", "tests/**", "mdcat.1.adoc", "README.md", "changelog.d/**"]
+scope = ["src/book/**", "src/args.rs", "src/main.rs", "src/lib.rs", "tests/**", "mdcat.1.adoc", "README.md", "changelog.d/**", "src/picker.rs", "src/toc.rs"]
 
 [[acceptance]]
 text = "Given a SUMMARY.md with nested mdBook link lists, When the book is resolved, Then the documents come out depth-first in list order, skipping draft entries with empty links and duplicates"
