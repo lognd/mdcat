@@ -1,0 +1,17 @@
++++
+id = "01M40TVFCZEYX285E4WWM6PAX1"
+title = "Honour --emoji, --smart-punctuation, --toc and --no-colour in the book pager"
+type = "story"
+category = "triage"
+priority = "low"
+parent = "01M40SN4N73X0X52REQ2V7JZCX"
+reporter = "lognd"
+created = "2026-10-03T12:12:05Z"
+updated = "2026-10-03T12:12:05Z"
+persona = "a reader of long documentation sets"
+capability = "get the same rendering options in the book pager as in plain mdcat"
+outcome_text = "my config defaults apply whether I page a book or pipe it"
+idempotency_key = "mdcat-book-pager-render-options"
++++
+
+The pager renders through pulldown_cmark_mdcat::ratatui::Renderer, which parses with markdown_options(false) and takes neither event transforms (emoji, TOC) nor a dumb-terminal style. Piped book output already honours all of these since it goes through process_file. Found while building the pager (~EPP5C3X).
