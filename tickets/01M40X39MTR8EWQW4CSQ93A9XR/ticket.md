@@ -2,7 +2,8 @@
 id = "01M40X39MTR8EWQW4CSQ93A9XR"
 title = "Show (END) and the next document's title at the bottom of a document"
 type = "story"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "high"
 points = 1
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
