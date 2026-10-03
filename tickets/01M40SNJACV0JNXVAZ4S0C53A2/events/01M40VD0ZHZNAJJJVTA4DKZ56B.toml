@@ -1,0 +1,26 @@
+kind = "evidence"
+accepts = [2]
+captured_at = "2026-10-03T12:21:40Z"
+digest = "e8578bec9dd72a0ce95a8e624cc01929e3f82010b8b203c2937b651104d81b79"
+exit_code = 0
+inline = """
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+────────────
+ Nextest run ID df9bbcb0-7101-4ecb-a68c-72a746487043 with nextest profile: default
+    Starting 4 tests across 4 binaries (70 tests skipped)
+        PASS [   0.019s] (1/4) mdcat::bin/mdcat book::pager::tests::keys_map_to_actions
+        PASS [   0.039s] (2/4) mdcat::bin/mdcat book::contents::tests::overlay_is_centred_and_fits_the_area
+        PASS [   0.220s] (3/4) mdcat::bin/mdcat book::pager::tests::contents_highlight_the_current_document
+        PASS [   0.223s] (4/4) mdcat::bin/mdcat book::pager::tests::contents_are_closed_until_tab_opens_them
+────────────
+     Summary [   0.225s] 4 tests run: 4 passed, 70 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(contents_are_closed_until_tab_opens_them) | test(contents_highlight_the_current_document) | test(keys_map_to_actions) | test(overlay_is_centred_and_fits_the_area)'"
+size = 760
+status = "measured"
+tests = ["book::pager::tests::keys_map_to_actions", "book::contents::tests::overlay_is_centred_and_fits_the_area", "book::pager::tests::contents_highlight_the_current_document", "book::pager::tests::contents_are_closed_until_tab_opens_them"]
+at = "2026-10-03T12:21:40Z"
+actor = "lognd"
+rev = 1
