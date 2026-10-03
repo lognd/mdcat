@@ -2,7 +2,8 @@
 id = "01M40SNJ2GJH6Q0JXDWTJX99KA"
 title = "Resolve book reading order and add the --book flag"
 type = "story"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "high"
 points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
