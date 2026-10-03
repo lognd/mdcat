@@ -2,7 +2,8 @@
 id = "01M40X3AJJ0AFT20NF9N48WMBM"
 title = "Choose the book order with --order, a config default and the o key"
 type = "story"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "medium"
 points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
