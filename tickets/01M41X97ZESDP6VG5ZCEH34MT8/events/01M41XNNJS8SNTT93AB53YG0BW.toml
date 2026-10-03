@@ -1,0 +1,24 @@
+kind = "evidence"
+accepts = [1]
+captured_at = "2026-10-03T22:20:35Z"
+digest = "3be3adafc4ccabcaba19d04e3303c5f95530fffab1c0313c09013246c22105ac"
+exit_code = 0
+inline = '''
+   Compiling mdcat v2.18.0+lognd (<worktree>)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.44s
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+ Nextest run ID 2e264f9d-a93d-4b0d-90c1-426cae8e9dff with nextest profile: default
+    Starting 1 test across 5 binaries (105 tests skipped)
+        PASS [   0.004s] mdcat::fork fork_page_covers_features_install_upstream_issues_and_tags
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+     Summary [   0.005s] 1 test run: 1 passed, 105 skipped
+'''
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(fork_page_covers_features_install_upstream_issues_and_tags)'"
+size = 610
+status = "measured"
+tests = ["fork_page_covers_features_install_upstream_issues_and_tags"]
+at = "2026-10-03T22:20:35Z"
+actor = "lognd"
+rev = 1

@@ -1,7 +1,7 @@
 kind = "evidence"
 accepts = [1]
 captured_at = "2026-10-03T11:59:56Z"
-digest = "6ba8c82ef0c57072a8f5530e13965c2e3db27cc842844ef945b753f74196bf87"
+digest = "ba2f8169f71fdd4fd70f11d5ce6cd24b124a851a7665bdcab1709c34b7e3258d"
 exit_code = 0
 inline = """
  Downloading crates ...
@@ -24,7 +24,7 @@ inline = """
   Downloaded ratatui-core v0.1.2
   Downloaded ratatui-widgets v0.3.2
   Downloaded ratatui-image v11.0.6
-   Compiling mdcat v2.18.0 (/home/logan/projects/mdcat-wt/TJX99KA)
+   Compiling mdcat v2.18.0 (mdcat-wt/TJX99KA)
     Finished `test` profile [unoptimized + debuginfo] target(s) in 35.36s
 ────────────
  Nextest run ID e54ab8ff-636b-4085-acf5-e3589859e781 with nextest profile: default
@@ -38,7 +38,7 @@ inline = """
 passed = true
 provider = "nextest"
 ref = "-p mdcat -E 'test(summary_links_come_out_depth_first) | test(directory_with_summary_uses_summary_order) | test(summary_file_target_uses_summary_order)'"
-size = 1379
+size = 1358
 status = "measured"
 tests = ["book::order::tests::summary_links_come_out_depth_first", "book::order::tests::summary_file_target_uses_summary_order", "book::order::tests::directory_with_summary_uses_summary_order"]
 at = "2026-10-03T11:59:56Z"

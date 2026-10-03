@@ -1,0 +1,23 @@
+kind = "evidence"
+accepts = [4]
+captured_at = "2026-10-03T22:20:42Z"
+digest = "90d16d74351c4b1178f1311497845941a663b9ec7b873b8951d957a02678a8b4"
+exit_code = 0
+inline = '''
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+ Nextest run ID d27adfcd-8ab4-45bc-b83a-a29e5ae54005 with nextest profile: default
+    Starting 1 test across 5 binaries (105 tests skipped)
+        PASS [   3.282s] mdcat::fork sync_upstream_resolves_expected_conflicts_and_stops_on_others
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+     Summary [   3.282s] 1 test run: 1 passed, 105 skipped
+'''
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(sync_upstream_resolves_expected_conflicts_and_stops_on_others)'"
+size = 566
+status = "measured"
+tests = ["sync_upstream_resolves_expected_conflicts_and_stops_on_others"]
+at = "2026-10-03T22:20:42Z"
+actor = "lognd"
+rev = 1
