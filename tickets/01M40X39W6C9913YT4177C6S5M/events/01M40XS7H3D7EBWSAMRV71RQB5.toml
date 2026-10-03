@@ -1,0 +1,27 @@
+kind = "evidence"
+accepts = [1]
+captured_at = "2026-10-03T13:03:18Z"
+digest = "5164db174f1305e4602fdf370f005adc051c65bff75264bc4a06e9c005e72199"
+exit_code = 0
+inline = """
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.65s
+────────────
+ Nextest run ID 4b6ec6bb-fa4d-4257-9260-8e1a11277ba2 with nextest profile: default
+    Starting 3 tests across 4 binaries (78 tests skipped)
+        PASS [   0.014s] (1/3) mdcat::bin/mdcat book::order::tests::readme_comes_before_index
+        PASS [   0.032s] (2/3) mdcat::bin/mdcat book::order::tests::directory_without_summary_reads_readme_then_by_path
+        PASS [   0.044s] (3/3) mdcat::bin/mdcat book::order::tests::every_directory_puts_its_index_first_and_sorts_naturally
+────────────
+     Summary [   0.048s] 3 tests run: 3 passed, 78 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(every_directory_puts_its_index_first_and_sorts_naturally) | test(directory_without_summary_reads_readme_then_by_path) | test(readme_comes_before_index)'"
+size = 790
+status = "measured"
+tests = ["book::order::tests::readme_comes_before_index", "book::order::tests::directory_without_summary_reads_readme_then_by_path", "book::order::tests::every_directory_puts_its_index_first_and_sorts_naturally"]
+at = "2026-10-03T13:03:18Z"
+actor = "lognd"
+rev = 1
