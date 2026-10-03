@@ -18,6 +18,8 @@ mdcat - render CommonMark Markdown to text terminals
 
 *mdpick* [_OPTIONS_] [DIRECTORY]
 
+*mdcat* [_OPTIONS_] *--book* [DIRECTORY|SUMMARY]
+
 == Description
 
 mdcat renders Markdown ``FILE``s in CommonMark dialect to text terminals with sophisticated formatting.
@@ -62,6 +64,18 @@ When `$MDCAT_PAGER`/`$PAGER` resolves to `lessi`, mdcat skips the ANSI fallback 
 It recursively collects `.md` files below `DIRECTORY`, honouring `.gitignore` and other ignore files the same way `fzf` and `rg` do, then hands that list to `fzf` for fuzzy selection.
 If the picker is cancelled, e.g. with kbd:[Esc] or kbd:[Ctrl+C], `mdpick` exits with status 0 without rendering anything.
 Once a file is selected, `mdpick` renders it exactly as `mdless` would, paginating by default.
+
+=== Reading a book
+
+With `--book`, or given a single `DIRECTORY`, mdcat reads a set of documents in order, like a book.
+The argument is a directory, or an mdBook `SUMMARY.md` file; with `--book` alone it reads the current directory.
+
+The reading order comes from `SUMMARY.md` (in the directory, or the file given): every link to a local Markdown file, depth-first in the order of its nested lists, skipping draft chapters with empty links, external links, and links repeated later.
+Without a summary, the order is `README.md` first, then every other `.md` file below the directory sorted by path, honouring `.gitignore` the same way `mdpick` does.
+
+When standard output is not a terminal, mdcat renders every document of the book in reading order, as if they were given as ``FILE``s.
+
+A single `SUMMARY.md` given without `--book` still renders as one ordinary document.
 
 === Image support
 
@@ -194,6 +208,12 @@ Also settable via `$MDCAT_IMAGE_PROTOCOL`; the flag wins if both are given.
 Off by default, so literal tabs pass through unchanged; without this, a tab inside text content (not part of the Markdown block structure) throws off line-wrapping and alignment width calculations, since terminals render it as jumping to the next tab stop rather than occupying a single column.
 +
 Also settable via `defaults.tabs` in `~/.config/mdcat/config.toml`.
+
+[[book-option]]-b::
+--book::
+    Read the single `DIRECTORY` or mdBook `SUMMARY.md` argument as a book, in reading order; see <<Reading a book>>.
+    A single `DIRECTORY` argument implies this flag.
+    Does not work with `--watch`.
 
 --completions=_SHELL_::
     Generate completions for _SHELL_ to standard output and exit.
@@ -405,6 +425,10 @@ mdless hello:: Render markdown from `mdless` through a pager.
 mdpick:: Fuzzy-find a Markdown file below the current directory with `fzf`, then render it through a pager.
 
 mdpick docs:: Same, but search below `docs` instead of the current directory.
+
+mdcat docs:: Read every document in `docs` in reading order, from `docs/SUMMARY.md` if it exists.
+
+mdcat --book docs/SUMMARY.md:: Read the book that `docs/SUMMARY.md` lays out.
 
 == See also
 

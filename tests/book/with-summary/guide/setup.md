@@ -1,0 +1,3 @@
+# Setup
+
+Install the thing.

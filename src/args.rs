@@ -245,6 +245,11 @@ pub struct CommonArgs {
     /// `~/.config/mdcat/config.toml`.
     #[arg(long, value_name = "COLUMNS")]
     pub tabs: Option<u16>,
+    /// Read a set of documents in order, like a book: FILENAMES is a single directory or an
+    /// mdBook SUMMARY.md. The reading order comes from SUMMARY.md, else README.md first and the
+    /// other Markdown files by path. A single directory argument implies this flag.
+    #[arg(short = 'b', long)]
+    pub book: bool,
 }
 
 /// What resources mdcat may access.

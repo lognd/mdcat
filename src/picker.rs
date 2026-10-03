@@ -14,7 +14,7 @@ use anyhow::{bail, Context, Result};
 use ignore::WalkBuilder;
 
 /// Recursively collect Markdown files below `root`, honouring `.gitignore` and friends.
-fn find_markdown_files(root: &Path) -> Vec<PathBuf> {
+pub(crate) fn find_markdown_files(root: &Path) -> Vec<PathBuf> {
     WalkBuilder::new(root)
         .build()
         .filter_map(|entry| entry.ok())

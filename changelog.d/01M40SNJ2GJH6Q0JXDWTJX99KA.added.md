@@ -1,0 +1,1 @@
+mdcat: `--book` (`-b`), or a single directory argument, reads a set of documents in reading order: the links of an mdBook `SUMMARY.md` depth-first, else `README.md` first and the other Markdown files by path.

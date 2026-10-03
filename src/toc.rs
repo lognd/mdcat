@@ -174,6 +174,16 @@ pub fn build_toc_events(
     events
 }
 
+/// The text of the first heading in `markdown`, if it has any, e.g. to title the document.
+///
+/// `options` must match the options used to parse `markdown`, as for [`build_toc_events`].
+pub fn first_heading(markdown: &str, options: Options) -> Option<String> {
+    collect_headings(markdown, options)
+        .into_iter()
+        .next()
+        .map(|heading| heading.title)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -194,6 +204,16 @@ mod tests {
             }
         }
         result
+    }
+
+    #[test]
+    fn first_heading_is_the_first_heading_at_any_level() {
+        let markdown = "intro\n\n## Second `level`\n\n# Top\n";
+        assert_eq!(
+            first_heading(markdown, markdown_options(false)).as_deref(),
+            Some("Second level")
+        );
+        assert_eq!(first_heading("no headings", markdown_options(false)), None);
     }
 
     #[test]

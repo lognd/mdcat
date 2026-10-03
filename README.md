@@ -123,6 +123,22 @@ $ mdpick
 $ mdpick docs  # search below docs instead
 ```
 
+### Reading a book
+
+Point `mdcat` at a directory, or pass `--book` (`-b`) with an [mdBook]-style `SUMMARY.md`, to read
+a whole set of documents in order:
+
+```console
+$ mdcat docs                  # docs/SUMMARY.md order, else README.md first, then by path
+$ mdcat --book docs/SUMMARY.md
+```
+
+The reading order comes from the links in `SUMMARY.md`, depth-first; without one, `README.md`
+comes first and the other Markdown files follow by path. Piped or redirected, every document is
+rendered in that order.
+
+[mdBook]: https://rust-lang.github.io/mdBook/format/summary.html
+
 ### `mdless` and `mdpick`
 
 `mdcat` looks at the name it was invoked as (`argv[0]`) to decide how to behave:

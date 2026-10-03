@@ -33,6 +33,7 @@ use two_face::theme::{EmbeddedThemeName, LazyThemeSet};
 use mdcat::args::{Args, ImageProtocolChoice, ThemeChoice};
 use mdcat::output::{resolved_pager_basename, Output};
 
+mod book;
 mod picker;
 
 /// Clear the terminal screen and scrollback, then move the cursor home.
@@ -438,6 +439,20 @@ fn main() {
         } else {
             args.filenames.clone()
         };
+        let book = match book::book_target(&filenames, args.book)
+            .and_then(|target| target.as_deref().map(book::Book::resolve).transpose())
+        {
+            Ok(book) => book,
+            Err(error) => {
+                eprintln!("Error: {error:#}");
+                std::process::exit(1);
+            }
+        };
+        if book.is_some() && args.watch {
+            eprintln!("Error: --watch cannot be combined with reading a book");
+            std::process::exit(1);
+        }
+        let filenames = book.as_ref().map_or(filenames, book::Book::filenames);
 
         if args.watch && args.paginate() {
             eprintln!("Error: --watch cannot be combined with --paginate");
