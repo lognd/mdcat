@@ -4,7 +4,7 @@ start = "2026-10-03"
 end = "2026-10-04"
 goal = "Book mode first pass: reading order, built-in pager, TOC overlay"
 state = "planned"
-tickets = ["01M40SNJ2GJH6Q0JXDWTJX99KA"]
+tickets = ["01M40SNJ2GJH6Q0JXDWTJX99KA", "01M40SNJ6CH7GVCDJE0EPP5C3X"]
 created = "2026-10-03T11:51:32Z"
 updated = "2026-10-03T11:51:32Z"
 +++
