@@ -1,0 +1,6 @@
+kind = "cycle"
+op = "retro"
+text = "Goal met in one day: 11 points across reading order, built-in pager and contents overlay. The renderer's existing Ratatui widget did most of the pager work. Deferred to triage: link following, search, pager render options, upstream resource-handler TODO."
+at = "2026-10-03T12:24:11Z"
+actor = "lognd"
+rev = 1
