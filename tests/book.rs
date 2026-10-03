@@ -101,3 +101,91 @@ fn book_refuses_watch() {
         .unwrap()
         .contains("--watch cannot be combined"));
 }
+
+/// Run the pager in a pseudo-terminal from util-linux `script`, answering the terminal queries
+/// a plain xterm would, send `keys` once it has drawn, and return its exit status and output.
+#[cfg(target_os = "linux")]
+fn run_pager_in_pty(target: &str, keys: &[u8]) -> Option<(std::process::ExitStatus, String)> {
+    use std::io::{Read, Write};
+    use std::process::Stdio;
+    use std::sync::mpsc;
+    use std::time::{Duration, Instant};
+
+    let command = format!(
+        "stty rows 24 cols 80; exec env -u TMUX -u TERM_PROGRAM TERM=xterm-256color {} {target}",
+        env!("CARGO_BIN_EXE_mdcat")
+    );
+    let mut child = Command::new("script")
+        .args(["-qfec", &command, "/dev/null"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .ok()?;
+    let mut stdin = child.stdin.take().unwrap();
+    let mut stdout = child.stdout.take().unwrap();
+    let (sender, receiver) = mpsc::channel();
+    std::thread::spawn(move || {
+        let mut buffer = [0; 4096];
+        while let Ok(read) = stdout.read(&mut buffer) {
+            if read == 0 || sender.send(buffer[..read].to_vec()).is_err() {
+                break;
+            }
+        }
+    });
+
+    let replies: [(&[u8], &[u8]); 3] = [
+        (b"\x1b[c", b"\x1b[?62;22c"),
+        (b"\x1b[5n", b"\x1b[0n"),
+        (b"\x1b[6n", b"\x1b[24;1R"),
+    ];
+    let mut output = Vec::new();
+    let mut sent_keys = false;
+    let deadline = Instant::now() + Duration::from_secs(20);
+    while Instant::now() < deadline {
+        if let Some(status) = child.try_wait().unwrap() {
+            while let Ok(chunk) = receiver.recv_timeout(Duration::from_millis(200)) {
+                output.extend(chunk);
+            }
+            return Some((status, String::from_utf8_lossy(&output).into_owned()));
+        }
+        if let Ok(chunk) = receiver.recv_timeout(Duration::from_millis(50)) {
+            for (query, reply) in replies {
+                if chunk.windows(query.len()).any(|window| window == query) {
+                    stdin.write_all(reply).unwrap();
+                }
+            }
+            output.extend(chunk);
+        }
+        let drawn = String::from_utf8_lossy(&output).contains("quit");
+        if drawn && !sent_keys {
+            stdin.write_all(keys).unwrap();
+            stdin.flush().unwrap();
+            sent_keys = true;
+        }
+    }
+    child.kill().unwrap();
+    panic!(
+        "pager did not exit; output:\n{}",
+        String::from_utf8_lossy(&output)
+    );
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn pager_quits_on_q_and_restores_the_terminal() {
+    let Some((status, output)) = run_pager_in_pty("tests/book/long", b"q") else {
+        eprintln!("util-linux script is not available; skipping");
+        return;
+    };
+    assert!(status.success(), "{status:?}");
+    let entered = output
+        .find("\x1b[?1049h")
+        .expect("entered the alternate screen");
+    let left = output
+        .rfind("\x1b[?1049l")
+        .expect("left the alternate screen");
+    assert!(entered < left);
+    assert!(output.contains("1/2"), "{output}");
+    assert!(output.contains("README + by path"), "{output}");
+}
