@@ -6,10 +6,11 @@
 //!
 //! Each directory takes its order from the most explicit source it has: an mdBook `SUMMARY.md`;
 //! else an index document, a `README.md` or `index.md` whose tables and lists name most of the
-//! directory, followed by what it leaves out; else its `README.md` or `index.md` first and every
-//! other document and subdirectory in natural name order. Subdirectories resolve the same way in
-//! their place.
+//! directory, followed by what it leaves out; else its `README.md` or `index.md` first, then the
+//! documents and subdirectories with a frontmatter weight by weight, then the rest in natural name
+//! order. Subdirectories resolve the same way in their place.
 
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fmt;
 use std::path::{Component, Path, PathBuf};
@@ -21,6 +22,7 @@ use tracing::{event, Level};
 
 use crate::picker::find_markdown_files;
 
+mod frontmatter;
 mod index;
 mod natural;
 mod summary;
@@ -47,6 +49,8 @@ pub enum OrderSource {
     /// The documents an index document lists, in first-mention order; the path is relative to
     /// the book.
     Index(PathBuf),
+    /// Navigation weights in the documents' frontmatter, like `nav_order` or `weight`.
+    Frontmatter,
     /// No declared order: the directory's README or index first, then by name.
     Path,
 }
@@ -57,6 +61,7 @@ impl fmt::Display for OrderSource {
             OrderSource::Summary(path) | OrderSource::Index(path) => {
                 write!(f, "{}", display_path(path))
             }
+            OrderSource::Frontmatter => f.write_str("frontmatter"),
             OrderSource::Path => f.write_str("by path"),
         }
     }
@@ -394,15 +399,47 @@ impl Resolver {
         Ok(())
     }
 
-    /// Place `directory`'s README or index first, then its documents and subdirectories by name.
+    /// Place `directory`'s README or index first, then its documents and subdirectories with a
+    /// frontmatter weight by weight, then the rest by name.
     fn by_path(&mut self, directory: &Path) {
-        let mut children = self.children(directory);
-        children.sort_by(|(left, _), (right, _)| {
-            let (left, right) = (file_name(left), file_name(right));
-            index_rank(&left)
-                .cmp(&index_rank(&right))
-                .then_with(|| natural_cmp(&left, &right))
+        let mut children: Vec<_> = self
+            .children(directory)
+            .into_iter()
+            .map(|(child, is_directory)| {
+                let weight = self.weight(&child, is_directory);
+                let name = file_name(&child);
+                let rank = if is_directory {
+                    INDEX_FILES.len()
+                } else {
+                    index_rank(&name)
+                };
+                (child, is_directory, rank, weight, name)
+            })
+            .collect();
+        if self.unlisted == 0
+            && children
+                .iter()
+                .any(|(_, _, rank, weight, _)| *rank == INDEX_FILES.len() && weight.is_some())
+        {
+            self.note(OrderSource::Frontmatter);
+        }
+        children.sort_by(|left, right| {
+            let (_, _, left_rank, left_weight, left_name) = left;
+            let (_, _, right_rank, right_weight, right_name) = right;
+            left_rank
+                .cmp(right_rank)
+                .then_with(|| match (left_weight, right_weight) {
+                    (Some(left), Some(right)) => left.total_cmp(right),
+                    (Some(_), None) => Ordering::Less,
+                    (None, Some(_)) => Ordering::Greater,
+                    (None, None) => Ordering::Equal,
+                })
+                .then_with(|| natural_cmp(left_name, right_name))
         });
+        let children: Vec<_> = children
+            .into_iter()
+            .map(|(child, is_directory, ..)| (child, is_directory))
+            .collect();
         let level = self.level(directory);
         for (child, is_directory) in children {
             if is_directory {
@@ -414,6 +451,22 @@ impl Resolver {
                 self.place(child, None, level);
             }
         }
+    }
+
+    /// The frontmatter weight of a document, or of a subdirectory's README or index.
+    fn weight(&self, child: &Path, is_directory: bool) -> Option<f64> {
+        let document = if is_directory {
+            self.files
+                .iter()
+                .filter(|file| file.parent() == Some(child))
+                .min_by_key(|file| index_rank(&file_name(file)))
+                .filter(|file| index_rank(&file_name(file)) < INDEX_FILES.len())?
+                .clone()
+        } else {
+            child.to_path_buf()
+        };
+        let markdown = std::fs::read_to_string(&document).ok()?;
+        frontmatter::weight(&markdown)
     }
 
     /// The documents and the subdirectories holding documents directly inside `directory`;
@@ -730,6 +783,25 @@ mod tests {
         ] {
             assert_eq!(resolve(nothing), None, "{nothing}");
         }
+    }
+
+    #[test]
+    fn frontmatter_weights_order_after_the_readme_and_before_the_rest() {
+        let root = fixture("weighted");
+        let book = Book::resolve(&root).unwrap();
+        assert_eq!(
+            relative_paths(&book, &root),
+            vec![
+                "README.md",
+                "guide/README.md",
+                "guide/x.md",
+                "b.md",
+                "a.md",
+                "c.md",
+                "d.md",
+            ]
+        );
+        assert_eq!(book.order_label(), "frontmatter, by path");
     }
 
     #[test]

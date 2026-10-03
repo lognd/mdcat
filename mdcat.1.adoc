@@ -81,7 +81,9 @@ mdcat collects every `.md` file below the directory, honouring `.gitignore` the 
   References to missing files, to anything outside the directory, and to URLs are skipped.
   Documents the index leaves out are marked as unlisted, and the status line counts them.
   Given a Markdown file other than `SUMMARY.md` instead of a directory, mdcat reads it as the index of its directory, however few documents it names.
-* Otherwise the directory's `README.md` (or else `index.md`) comes first, then its other documents and subdirectories by name, in natural order: case does not matter and numbers compare by value, so `ch2.md` comes before `ch10.md`.
+* Otherwise the directory's `README.md` (or else `index.md`) comes first.
+  Then come the documents with a navigation weight in their frontmatter (`nav_order`, `weight` or `sidebar_position`, as Jekyll, Hugo and Docusaurus sites use, in YAML or TOML), lowest first; a subdirectory takes the weight of its README or index.
+  Then the other documents and subdirectories by name, in natural order: case does not matter and numbers compare by value, so `ch2.md` comes before `ch10.md`.
 
 A document only appears once, where it is first placed.
 
