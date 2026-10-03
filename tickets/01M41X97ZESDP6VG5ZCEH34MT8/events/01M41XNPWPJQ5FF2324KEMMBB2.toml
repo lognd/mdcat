@@ -1,0 +1,26 @@
+kind = "evidence"
+accepts = [2]
+captured_at = "2026-10-03T22:20:37Z"
+digest = "ce52c4465c659129909ac5a32d649eea422e9dd9770debcca6b490b19ac693ec"
+exit_code = 0
+inline = '''
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+ Nextest run ID 59b8fceb-d206-4aaa-9ad8-4fd00db28019 with nextest profile: default
+    Starting 1 test across 5 binaries (105 tests skipped)
+        PASS [   0.005s] mdcat::fork readme_starts_with_the_fork_note_and_is_otherwise_upstream
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+     Summary [   0.006s] 1 test run: 1 passed, 105 skipped
+'''
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(readme_starts_with_the_fork_note_and_is_otherwise_upstream)'"
+size = 719
+status = "measured"
+tests = ["readme_starts_with_the_fork_note_and_is_otherwise_upstream"]
+at = "2026-10-03T22:20:37Z"
+actor = "lognd"
+rev = 1
