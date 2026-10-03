@@ -2,7 +2,8 @@
 id = "01M40X3AB22EBN7RDCC7T282Z9"
 title = "Order book documents by frontmatter weights"
 type = "story"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "medium"
 points = 2
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
