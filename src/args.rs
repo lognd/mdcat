@@ -250,6 +250,29 @@ pub struct CommonArgs {
     /// other Markdown files by path. A single directory argument implies this flag.
     #[arg(short = 'b', long)]
     pub book: bool,
+    /// Where a book's reading order comes from: `auto` detects it per directory (SUMMARY.md,
+    /// else an index README, else frontmatter weights, else by path); the others use only that
+    /// source, by path where it is absent. Also settable via `defaults.book_order` in
+    /// `~/.config/mdcat/config.toml`.
+    #[arg(long, value_name = "ORDER")]
+    pub order: Option<BookOrder>,
+}
+
+/// Where a book's reading order comes from.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
+pub enum BookOrder {
+    /// Per directory, the most explicit source it has: SUMMARY.md, an index document,
+    /// frontmatter weights, else by path.
+    #[default]
+    Auto,
+    /// Only SUMMARY.md files; fails without one.
+    Summary,
+    /// Only index documents: a README.md or index.md listing documents in tables or lists.
+    Index,
+    /// Only frontmatter weights such as `nav_order`.
+    Frontmatter,
+    /// README or index first, then by name.
+    Path,
 }
 
 /// What resources mdcat may access.

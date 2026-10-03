@@ -16,6 +16,7 @@ use std::fmt;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
+use mdcat::args::BookOrder;
 use mdcat::toc::first_heading;
 use pulldown_cmark_mdcat::markdown_options;
 use tracing::{event, Level};
@@ -83,9 +84,22 @@ pub struct Chapter {
     pub unlisted: bool,
 }
 
+/// Every order, in the order the pager offers them.
+const ORDERS: [BookOrder; 5] = [
+    BookOrder::Auto,
+    BookOrder::Summary,
+    BookOrder::Index,
+    BookOrder::Frontmatter,
+    BookOrder::Path,
+];
+
 /// A set of Markdown documents in reading order.
 #[derive(Debug, Clone)]
 pub struct Book {
+    /// The directory or file the book was resolved from.
+    pub target: PathBuf,
+    /// The order the book was resolved with.
+    pub order: BookOrder,
     /// The documents in reading order; never empty.
     pub chapters: Vec<Chapter>,
     /// Every source the order came from, in the order they were first used.
@@ -95,17 +109,27 @@ pub struct Book {
 impl Book {
     /// Resolve the book at `target`: a directory, or a summary or index file.
     ///
-    /// A file named `SUMMARY.md` reads as a summary; any other file as the index of its
-    /// directory, however few documents it names. Fails if `target` is neither a directory nor a
-    /// file, if a file given as `target` cannot be read, or if the book has no documents.
-    pub fn resolve(target: &Path) -> Result<Book> {
+    /// A directory resolves in `order`. A file named `SUMMARY.md` reads as a summary; any other
+    /// file as the index of its directory, however few documents it names, whatever `order`.
+    /// Fails if `target` is neither a directory nor a file, if a file given as `target` cannot
+    /// be read, if `order` is [`BookOrder::Summary`] and there is no summary, or if the book has
+    /// no documents.
+    pub fn resolve(target: &Path, order: BookOrder) -> Result<Book> {
         let book = if target.is_dir() {
-            let mut resolver = Resolver::new(target);
+            let mut resolver = Resolver::new(target, order);
             resolver.directory(target);
-            resolver.finish()
+            let book = resolver.finish(target);
+            let has_summary = book
+                .sources
+                .iter()
+                .any(|source| matches!(source, OrderSource::Summary(_)));
+            if order == BookOrder::Summary && !has_summary {
+                bail!("No {SUMMARY_FILE} to read in {}", target.display());
+            }
+            book
         } else if target.is_file() {
             let directory = target.parent().unwrap_or_else(|| Path::new(""));
-            let mut resolver = Resolver::new(directory);
+            let mut resolver = Resolver::new(directory, order);
             let is_summary = target
                 .file_name()
                 .is_some_and(|name| name.eq_ignore_ascii_case(SUMMARY_FILE));
@@ -117,7 +141,7 @@ impl Book {
                 let index = resolver.read_index(directory, target, &markdown);
                 resolver.index(directory, index);
             }
-            resolver.finish()
+            resolver.finish(target)
         } else {
             bail!(
                 "{} is neither a directory nor a summary file",
@@ -136,6 +160,52 @@ impl Book {
             target.display()
         );
         Ok(book)
+    }
+
+    /// This book in every order that applies to it and gives a different sequence, this order
+    /// first, then the others in the order of [`BookOrder`]'s variants after it.
+    ///
+    /// An order applies if the book has its source somewhere; `auto` and `path` always apply.
+    pub fn alternatives(&self) -> Vec<Book> {
+        let start = ORDERS
+            .iter()
+            .position(|order| *order == self.order)
+            .unwrap_or(0);
+        let mut books = vec![self.clone()];
+        for order in ORDERS.iter().cycle().skip(start + 1).take(ORDERS.len() - 1) {
+            let Ok(book) = Book::resolve(&self.target, *order) else {
+                continue;
+            };
+            let applies = book.sources.iter().any(|source| {
+                matches!(
+                    (order, source),
+                    (BookOrder::Auto | BookOrder::Path, _)
+                        | (BookOrder::Summary, OrderSource::Summary(_))
+                        | (BookOrder::Index, OrderSource::Index(_))
+                        | (BookOrder::Frontmatter, OrderSource::Frontmatter)
+                )
+            });
+            let new = books.iter().all(|other| other.paths() != book.paths());
+            event!(
+                target: "mdcat::book",
+                Level::DEBUG,
+                ?order,
+                applies,
+                new,
+                "Alternative order"
+            );
+            if applies && new {
+                books.push(book);
+            }
+        }
+        books
+    }
+
+    fn paths(&self) -> Vec<&Path> {
+        self.chapters
+            .iter()
+            .map(|chapter| chapter.path.as_path())
+            .collect()
     }
 
     /// Describe where the reading order came from, and how many documents an index left out,
@@ -175,6 +245,7 @@ impl Book {
 /// A book under construction: every Markdown file below its root and what is placed so far.
 struct Resolver {
     root: PathBuf,
+    order: BookOrder,
     /// Every Markdown file below the root, honouring ignore files.
     files: Vec<PathBuf>,
     chapters: Vec<Chapter>,
@@ -202,9 +273,10 @@ struct Index {
 }
 
 impl Resolver {
-    fn new(root: &Path) -> Self {
+    fn new(root: &Path, order: BookOrder) -> Self {
         Resolver {
             root: root.to_path_buf(),
+            order,
             files: find_markdown_files(root),
             chapters: Vec::new(),
             sources: Vec::new(),
@@ -213,8 +285,10 @@ impl Resolver {
         }
     }
 
-    fn finish(self) -> Book {
+    fn finish(self, target: &Path) -> Book {
         Book {
+            target: target.to_path_buf(),
+            order: self.order,
             chapters: self.chapters,
             sources: self.sources,
         }
@@ -223,7 +297,8 @@ impl Resolver {
     /// Place every document of `directory` in its order, recursing into subdirectories.
     fn directory(&mut self, directory: &Path) {
         let summary = directory.join(SUMMARY_FILE);
-        if summary.is_file() {
+        let summaries = matches!(self.order, BookOrder::Auto | BookOrder::Summary);
+        if summaries && summary.is_file() {
             match self.summary(directory, &summary) {
                 Ok(()) => return,
                 Err(error) => event!(
@@ -233,7 +308,8 @@ impl Resolver {
                 ),
             }
         }
-        match self.find_index(directory) {
+        let indexes = matches!(self.order, BookOrder::Auto | BookOrder::Index);
+        match self.find_index(directory).filter(|_| indexes) {
             Some(index) => self.index(directory, index),
             None => self.by_path(directory),
         }
@@ -241,8 +317,12 @@ impl Resolver {
 
     /// The index document of `directory`: the README or index naming the most of its documents
     /// and subdirectories, if it names at least half of them and at least
-    /// [`INDEX_MIN_ENTRIES`] (or all, if there are fewer).
+    /// [`INDEX_MIN_ENTRIES`] (or all, if there are fewer); in [`BookOrder::Index`], if it names
+    /// any.
     fn find_index(&self, directory: &Path) -> Option<Index> {
+        if !matches!(self.order, BookOrder::Auto | BookOrder::Index) {
+            return None;
+        }
         let children = self.children(directory);
         let total = children.len().saturating_sub(1);
         let index = children
@@ -262,9 +342,10 @@ impl Resolver {
                     index_rank(&file_name(&right.path)).cmp(&index_rank(&file_name(&left.path)))
                 })
             })?;
+        let forced = self.order == BookOrder::Index;
         let enough = index.covered > 0
-            && index.covered >= INDEX_MIN_ENTRIES.min(total)
-            && index.covered * 2 >= total;
+            && (forced
+                || (index.covered >= INDEX_MIN_ENTRIES.min(total) && index.covered * 2 >= total));
         event!(
             target: "mdcat::book",
             Level::DEBUG,
@@ -453,8 +534,12 @@ impl Resolver {
         }
     }
 
-    /// The frontmatter weight of a document, or of a subdirectory's README or index.
+    /// The frontmatter weight of a document, or of a subdirectory's README or index, if this
+    /// order uses weights.
     fn weight(&self, child: &Path, is_directory: bool) -> Option<f64> {
+        if !matches!(self.order, BookOrder::Auto | BookOrder::Frontmatter) {
+            return None;
+        }
         let document = if is_directory {
             self.files
                 .iter()
@@ -487,7 +572,9 @@ impl Resolver {
 
     /// Append the document at `path` unless it is placed already.
     fn place(&mut self, path: PathBuf, title: Option<String>, depth: usize) {
-        if !self.placed.insert(normalise(&path)) {
+        // One spelling per document, so that every order of a book names it the same way.
+        let path = normalise(&path);
+        if !self.placed.insert(path.clone()) {
             event!(
                 target: "mdcat::book",
                 Level::DEBUG,
@@ -628,7 +715,7 @@ mod tests {
     #[test]
     fn directory_with_summary_uses_summary_order() {
         let root = fixture("with-summary");
-        let book = Book::resolve(&root).unwrap();
+        let book = Book::resolve(&root, BookOrder::Auto).unwrap();
         assert_eq!(book.order_label(), "SUMMARY.md");
         assert_eq!(
             relative_paths(&book, &root),
@@ -652,7 +739,7 @@ mod tests {
     #[test]
     fn summary_file_target_uses_summary_order() {
         let root = fixture("with-summary");
-        let book = Book::resolve(&root.join(SUMMARY_FILE)).unwrap();
+        let book = Book::resolve(&root.join(SUMMARY_FILE), BookOrder::Auto).unwrap();
         assert_eq!(
             book.sources,
             vec![OrderSource::Summary(SUMMARY_FILE.into())]
@@ -663,7 +750,7 @@ mod tests {
     #[test]
     fn directory_without_summary_reads_readme_then_by_path() {
         let root = fixture("without-summary");
-        let book = Book::resolve(&root).unwrap();
+        let book = Book::resolve(&root, BookOrder::Auto).unwrap();
         assert_eq!(book.sources, vec![OrderSource::Path]);
         assert_eq!(book.order_label(), "README + by path");
         assert_eq!(
@@ -679,7 +766,7 @@ mod tests {
     #[test]
     fn every_directory_puts_its_index_first_and_sorts_naturally() {
         let root = fixture("nested");
-        let book = Book::resolve(&root).unwrap();
+        let book = Book::resolve(&root, BookOrder::Auto).unwrap();
         assert_eq!(
             relative_paths(&book, &root),
             vec![
@@ -714,7 +801,7 @@ mod tests {
     #[test]
     fn index_table_orders_its_directory_and_appends_the_rest() {
         let root = fixture("index-table");
-        let book = Book::resolve(&root).unwrap();
+        let book = Book::resolve(&root, BookOrder::Auto).unwrap();
         assert_eq!(
             relative_paths(&book, &root),
             vec![
@@ -742,7 +829,7 @@ mod tests {
     #[test]
     fn index_file_target_is_read_as_the_index_of_its_directory() {
         let root = fixture("weak-index");
-        let book = Book::resolve(&root.join("README.md")).unwrap();
+        let book = Book::resolve(&root.join("README.md"), BookOrder::Auto).unwrap();
         assert_eq!(
             relative_paths(&book, &root),
             vec!["README.md", "a.md", "b.md", "c.md", "d.md", "e.md", "f.md"]
@@ -754,7 +841,7 @@ mod tests {
     #[test]
     fn a_readme_naming_too_little_is_not_an_index() {
         let root = fixture("weak-index");
-        let book = Book::resolve(&root).unwrap();
+        let book = Book::resolve(&root, BookOrder::Auto).unwrap();
         assert_eq!(book.sources, vec![OrderSource::Path]);
         assert_eq!(book.unlisted(), 0);
     }
@@ -762,7 +849,7 @@ mod tests {
     #[test]
     fn index_references_resolve_inside_the_directory_only() {
         let root = fixture("index-table");
-        let resolver = Resolver::new(&root);
+        let resolver = Resolver::new(&root, BookOrder::Auto);
         let directory = normalise(&root);
         let resolve = |reference: &str| resolver.resolve_reference(&directory, &root, reference);
         assert_eq!(
@@ -788,7 +875,7 @@ mod tests {
     #[test]
     fn frontmatter_weights_order_after_the_readme_and_before_the_rest() {
         let root = fixture("weighted");
-        let book = Book::resolve(&root).unwrap();
+        let book = Book::resolve(&root, BookOrder::Auto).unwrap();
         assert_eq!(
             relative_paths(&book, &root),
             vec![
@@ -805,8 +892,64 @@ mod tests {
     }
 
     #[test]
+    fn path_order_ignores_summaries_indexes_and_weights() {
+        let root = fixture("with-summary");
+        let book = Book::resolve(&root, BookOrder::Path).unwrap();
+        assert_eq!(
+            relative_paths(&book, &root),
+            vec![
+                "appendix.md",
+                "guide/setup.md",
+                "guide/usage.md",
+                "intro.md",
+                "SUMMARY.md",
+                "unlisted.md"
+            ]
+        );
+        let root = fixture("weighted");
+        let book = Book::resolve(&root, BookOrder::Path).unwrap();
+        assert_eq!(book.sources, vec![OrderSource::Path]);
+        let root = fixture("index-table");
+        let book = Book::resolve(&root, BookOrder::Path).unwrap();
+        assert_eq!(book.unlisted(), 0);
+    }
+
+    #[test]
+    fn summary_order_needs_a_summary() {
+        let error = Book::resolve(&fixture("without-summary"), BookOrder::Summary).unwrap_err();
+        assert!(error.to_string().contains("No SUMMARY.md"), "{error}");
+        let book = Book::resolve(&fixture("nested"), BookOrder::Summary).unwrap();
+        assert_eq!(book.order_label(), "by path, summarised/SUMMARY.md");
+    }
+
+    #[test]
+    fn index_order_takes_any_index_and_frontmatter_order_only_weights() {
+        let root = fixture("weak-index");
+        let book = Book::resolve(&root, BookOrder::Index).unwrap();
+        assert_eq!(book.sources, vec![OrderSource::Index("README.md".into())]);
+        assert_eq!(book.unlisted(), 4);
+        let book = Book::resolve(&fixture("with-summary"), BookOrder::Frontmatter).unwrap();
+        assert_eq!(book.sources, vec![OrderSource::Path]);
+        let book = Book::resolve(&fixture("weighted"), BookOrder::Frontmatter).unwrap();
+        assert_eq!(book.order_label(), "frontmatter, by path");
+    }
+
+    #[test]
+    fn alternatives_are_the_orders_that_apply_and_differ() {
+        let book = Book::resolve(&fixture("index-table"), BookOrder::Auto).unwrap();
+        let orders: Vec<_> = book.alternatives().iter().map(|book| book.order).collect();
+        assert_eq!(orders, vec![BookOrder::Auto, BookOrder::Path]);
+        let book = Book::resolve(&fixture("index-table"), BookOrder::Path).unwrap();
+        let orders: Vec<_> = book.alternatives().iter().map(|book| book.order).collect();
+        assert_eq!(orders, vec![BookOrder::Path, BookOrder::Auto]);
+        let book = Book::resolve(&fixture("with-summary"), BookOrder::Auto).unwrap();
+        let orders: Vec<_> = book.alternatives().iter().map(|book| book.order).collect();
+        assert_eq!(orders, vec![BookOrder::Auto, BookOrder::Path]);
+    }
+
+    #[test]
     fn missing_target_is_an_error() {
-        let error = Book::resolve(&fixture("does-not-exist")).unwrap_err();
+        let error = Book::resolve(&fixture("does-not-exist"), BookOrder::Auto).unwrap_err();
         assert!(error.to_string().contains("neither a directory"));
     }
 

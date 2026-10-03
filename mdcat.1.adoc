@@ -98,9 +98,11 @@ kbd:[Down], kbd:[Up]:: Scroll by one line.
 kbd:[PgDn], kbd:[Space], kbd:[PgUp]:: Scroll by a page.
 kbd:[g], kbd:[G]:: Go to the top or the bottom of the document.
 kbd:[Tab]:: Open the table of contents.
+kbd:[o]:: Switch to the next reading order that applies to the book (see `--order`), staying on the open document; every document keeps its scroll position.
 kbd:[q], kbd:[Ctrl+C]:: Quit.
 
 The table of contents lists every document in reading order, indented by its nesting in `SUMMARY.md` (or its directory below the book), with the current document in bold and selected.
+Documents an index document left out are listed under an _Unlisted_ heading, which the selection skips.
 It is never shown unless asked for.
 While it is open, kbd:[Up], kbd:[Down], kbd:[PgUp], kbd:[PgDn], kbd:[g] and kbd:[G] move the selection, kbd:[Enter] opens the selected document, and kbd:[Tab] or kbd:[Esc] close it without moving.
 
@@ -246,6 +248,14 @@ Also settable via `defaults.tabs` in `~/.config/mdcat/config.toml`.
     A single `DIRECTORY` argument implies this flag.
     Does not work with `--watch`.
 
+[[order-option]]--order=_ORDER_::
+    Where a book's reading order comes from; see <<Reading a book>>.
+    `auto` (the default) uses, per directory, the most explicit source it has: `SUMMARY.md`, else an index document, else frontmatter weights, else names.
+    `summary`, `index`, `frontmatter` and `path` use only that source, falling back to `path` order in directories without it; `summary` fails if the book has no `SUMMARY.md`, and `index` takes any README or index that names a document of its directory, however few.
+    Has no effect on a summary or index file given as the book.
+    Only valid when reading a book.
+    Also settable via `defaults.book_order` in `~/.config/mdcat/config.toml`.
+
 --completions=_SHELL_::
     Generate completions for _SHELL_ to standard output and exit.
 
@@ -316,6 +326,10 @@ Each key sets the default value for a CLI flag, used only when that flag isn't p
 
 `tabs`::
     Default for <<tabs-option,`--tabs`>>.
+
+`book_order`::
+    Default for <<order-option,`--order`>>.
+    One of `auto`, `summary`, `index`, `frontmatter`, or `path`.
 
 === `[theme]`
 

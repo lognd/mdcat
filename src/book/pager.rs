@@ -5,7 +5,9 @@
 //! The built-in pager of book mode: one document at a time, with Left and Right moving between
 //! documents in reading order and a quiet status line at the bottom.
 
+use std::collections::HashMap;
 use std::io;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use mdcat::args::ImageProtocolChoice;
@@ -96,6 +98,7 @@ pub(crate) enum Action {
     ToggleContents,
     CloseContents,
     Confirm,
+    NextOrder,
     Quit,
 }
 
@@ -118,6 +121,7 @@ pub(crate) fn action_for(key: KeyEvent) -> Option<Action> {
         KeyCode::Tab => Action::ToggleContents,
         KeyCode::Esc => Action::CloseContents,
         KeyCode::Enter => Action::Confirm,
+        KeyCode::Char('o') => Action::NextOrder,
         _ => return None,
     };
     Some(action)
@@ -129,19 +133,27 @@ struct Loaded<'a> {
     renderer: Renderer<'a>,
 }
 
-/// One document of the book with its own scroll position and render cache.
+/// One document of the book with its own scroll position and render cache, kept by path so
+/// that it survives switching the book to another order.
+#[derive(Default)]
 struct Document<'a> {
     loaded: Option<Loaded<'a>>,
     state: MdcatWidgetState,
 }
 
-/// The pager over a book: which document is open and where each one is scrolled to.
+/// The pager over a book: which order and document are open and where each document is
+/// scrolled to.
 pub(crate) struct Pager<'a> {
-    book: &'a Book,
+    /// The book in each order the reader can switch to; `order` picks the open one.
+    books: Vec<Book>,
+    order: usize,
+    /// Whether `books` holds every alternative order yet; they are resolved on first demand.
+    alternatives_known: bool,
     render_options: RenderOptions<'a>,
     options: PagerOptions,
     image_picker: Option<ImagePicker>,
-    documents: Vec<Document<'a>>,
+    documents: HashMap<PathBuf, Document<'a>>,
+    /// The index of the open document in the open order.
     current: usize,
     /// The table of contents, while it is open.
     contents: Option<Contents>,
@@ -152,7 +164,7 @@ pub(crate) struct Pager<'a> {
 impl<'a> Pager<'a> {
     /// Create a pager on the first document of `book`, rendering like `settings`.
     pub(crate) fn new(
-        book: &'a Book,
+        book: Book,
         settings: &Settings<'a>,
         resource_handler: &'a dyn ResourceUrlHandler,
         options: PagerOptions,
@@ -167,44 +179,87 @@ impl<'a> Pager<'a> {
                 Some(picker) => ImageMode::Picker(picker.clone()),
                 None => ImageMode::TextOnly,
             });
-        let documents = book
-            .chapters
-            .iter()
-            .map(|_| Document {
-                loaded: None,
-                state: MdcatWidgetState::new(),
-            })
-            .collect();
         Pager {
-            book,
+            books: vec![book],
+            order: 0,
+            alternatives_known: false,
             render_options,
             options,
             image_picker,
-            documents,
+            documents: HashMap::new(),
             current: 0,
             contents: None,
             view_height: 0,
         }
     }
 
+    /// The book in the open order.
+    fn book(&self) -> &Book {
+        &self.books[self.order]
+    }
+
+    /// The path of the open document.
+    fn path(&self) -> &Path {
+        &self.book().chapters[self.current].path
+    }
+
+    fn document(&self) -> Option<&Document<'a>> {
+        self.documents.get(self.path())
+    }
+
+    fn document_mut(&mut self) -> &mut Document<'a> {
+        let path = self.path().to_path_buf();
+        self.documents.entry(path).or_default()
+    }
+
     /// The scroll offset of the open document.
     pub(crate) fn scroll(&self) -> u16 {
-        self.documents[self.current].state.scroll()
+        self.document()
+            .map_or(0, |document| document.state.scroll())
     }
 
     /// Open the document at `index` in reading order, keeping every document's scroll position.
     pub(crate) fn open(&mut self, index: usize) {
-        if index < self.documents.len() && index != self.current {
+        if index < self.book().chapters.len() && index != self.current {
             event!(
                 target: "mdcat::book",
                 Level::DEBUG,
                 from = self.current,
                 to = index,
                 "Opening {}",
-                self.book.chapters[index].path.display()
+                self.book().chapters[index].path.display()
             );
             self.current = index;
         }
+    }
+
+    /// Switch the book to its next order that applies, staying on the open document.
+    fn next_order(&mut self) {
+        if !self.alternatives_known {
+            self.books = self.book().alternatives();
+            self.order = 0;
+            self.alternatives_known = true;
+        }
+        if self.books.len() < 2 {
+            event!(target: "mdcat::book", Level::DEBUG, "No other order applies");
+            return;
+        }
+        let path = self.path().to_path_buf();
+        self.order = (self.order + 1) % self.books.len();
+        self.current = self
+            .book()
+            .chapters
+            .iter()
+            .position(|chapter| chapter.path == path)
+            .unwrap_or(0);
+        event!(
+            target: "mdcat::book",
+            Level::DEBUG,
+            order = ?self.book().order,
+            current = self.current,
+            "Switched order to {}",
+            self.book().order_label()
+        );
     }
 
     /// Apply `action` to the table of contents if it is open, else to the open document;
@@ -226,7 +281,7 @@ impl<'a> Pager<'a> {
                     }
                     Action::ToggleContents | Action::CloseContents => self.close_contents(),
                     Action::Quit => return self.apply_to_document(action),
-                    Action::NextDocument | Action::PreviousDocument => {}
+                    Action::NextDocument | Action::PreviousDocument | Action::NextOrder => {}
                 }
                 true
             }
@@ -252,8 +307,9 @@ impl<'a> Pager<'a> {
             Action::Bottom => self.scroll_to(u16::MAX),
             Action::ToggleContents => {
                 event!(target: "mdcat::book", Level::DEBUG, "Opening the table of contents");
-                self.contents = Some(Contents::new(self.current, self.documents.len()));
+                self.contents = Some(Contents::new(self.current, self.book()));
             }
+            Action::NextOrder => self.next_order(),
             Action::CloseContents | Action::Confirm => {}
             Action::Quit => {
                 event!(target: "mdcat::book", Level::DEBUG, "Quitting the pager");
@@ -266,14 +322,14 @@ impl<'a> Pager<'a> {
     /// Scroll the open document to `scroll`, clamped so that its last line stays at the bottom.
     fn scroll_to(&mut self, scroll: u16) {
         let max = self.max_scroll();
-        self.documents[self.current]
-            .state
-            .set_scroll(scroll.min(max));
+        self.document_mut().state.set_scroll(scroll.min(max));
     }
 
     /// The largest useful scroll offset of the open document, as of the last draw.
     fn max_scroll(&self) -> u16 {
-        let lines = self.documents[self.current].state.total_lines();
+        let lines = self
+            .document()
+            .map_or(0, |document| document.state.total_lines());
         u16::try_from(lines)
             .unwrap_or(u16::MAX)
             .saturating_sub(self.view_height)
@@ -287,21 +343,24 @@ impl<'a> Pager<'a> {
             let percent = u32::from(self.scroll()) * 100 / u32::from(max);
             return format!("{percent}%");
         }
-        match self.book.chapters.get(self.current + 1) {
+        match self.book().chapters.get(self.current + 1) {
             Some(next) => format!("(END) -> {}", next.title),
             None => "(END)".to_string(),
         }
     }
 
-    /// Read the document at `index` unless it was read already.
+    /// Read the open document unless it was read already.
     ///
     /// A document that cannot be read shows the error in its place, so the rest of the book
     /// stays readable.
-    fn load(&mut self, index: usize) {
-        if self.documents[index].loaded.is_some() {
+    fn load(&mut self) {
+        if self
+            .document()
+            .is_some_and(|document| document.loaded.is_some())
+        {
             return;
         }
-        let path = &self.book.chapters[index].path;
+        let path = self.path().to_path_buf();
         let source = mdcat::read_input(path.to_string_lossy()).and_then(|(base_dir, input)| {
             let input = strip_frontmatter(&input);
             let markdown = match self.options.tabs {
@@ -332,9 +391,10 @@ impl<'a> Pager<'a> {
             }
         };
         let renderer = Renderer::new(self.render_options.clone().environment(environment));
-        let document = &mut self.documents[index];
-        if let Some(picker) = &self.image_picker {
-            document.state.set_image_picker(picker.clone());
+        let image_picker = self.image_picker.clone();
+        let document = self.document_mut();
+        if let Some(picker) = image_picker {
+            document.state.set_image_picker(picker);
         }
         document.loaded = Some(Loaded { markdown, renderer });
     }
@@ -359,7 +419,7 @@ impl<'a> Pager<'a> {
             Layout::vertical([Constraint::Min(0), Constraint::Length(1)]).areas(frame.area());
         let content = self.content_area(body);
         self.view_height = content.height;
-        self.load(self.current);
+        self.load();
         self.render_document(frame, content);
         // A resize or a re-render at a new width can leave the scroll past the end.
         let max = self.max_scroll();
@@ -369,12 +429,20 @@ impl<'a> Pager<'a> {
         }
         frame.render_widget(self.status_line(status.width), status);
         if let Some(contents) = self.contents.as_mut() {
-            contents.render(self.book, self.current, body, frame.buffer_mut());
+            contents.render(
+                &self.books[self.order],
+                self.current,
+                body,
+                frame.buffer_mut(),
+            );
         }
     }
 
     fn render_document(&mut self, frame: &mut Frame<'_>, area: Rect) {
-        let document = &mut self.documents[self.current];
+        let path = self.path().to_path_buf();
+        let Some(document) = self.documents.get_mut(&path) else {
+            return;
+        };
         if let Some(loaded) = &document.loaded {
             let widget =
                 MdcatWidget::with_renderer(loaded.markdown.as_str(), loaded.renderer.clone());
@@ -384,13 +452,14 @@ impl<'a> Pager<'a> {
 
     /// The status line: title, position, order source and progress, then the key hint.
     fn status_line(&self, width: u16) -> Line<'static> {
-        let chapter = &self.book.chapters[self.current];
+        let book = self.book();
+        let chapter = &book.chapters[self.current];
         let left = format!(
             " {}   {}/{}   {}   {}",
             chapter.title,
             self.current + 1,
-            self.book.chapters.len(),
-            self.book.order_label(),
+            book.chapters.len(),
+            book.order_label(),
             self.progress()
         );
         let used = Line::from(left.as_str()).width() + KEY_HINT.len() + 1;
@@ -460,7 +529,7 @@ fn image_picker(images: PagerImages) -> Option<ImagePicker> {
 
 /// Page through `book` on the terminal until the reader quits, restoring the terminal after.
 pub fn run(
-    book: &Book,
+    book: Book,
     settings: &Settings<'_>,
     resource_handler: &dyn ResourceUrlHandler,
     options: PagerOptions,
@@ -492,10 +561,19 @@ mod tests {
     use ratatui::buffer::Buffer;
     use syntect::parsing::SyntaxSet;
 
+    use mdcat::args::BookOrder;
+
     use super::*;
 
     fn book() -> Book {
-        Book::resolve(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/book/long")).unwrap()
+        fixture_book("long")
+    }
+
+    fn fixture_book(name: &str) -> Book {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/book")
+            .join(name);
+        Book::resolve(&root, BookOrder::Auto).unwrap()
     }
 
     fn options() -> PagerOptions {
@@ -557,7 +635,7 @@ mod tests {
         let book = book();
         let syntax_set = two_face::syntax::extra_newlines();
         let settings = settings(&syntax_set);
-        let mut pager = Pager::new(&book, &settings, &NoopResourceHandler, options(), None);
+        let mut pager = Pager::new(book, &settings, &NoopResourceHandler, options(), None);
         test(&mut pager);
     }
 
@@ -583,6 +661,7 @@ mod tests {
             (KeyCode::Tab, Action::ToggleContents),
             (KeyCode::Esc, Action::CloseContents),
             (KeyCode::Enter, Action::Confirm),
+            (KeyCode::Char('o'), Action::NextOrder),
         ];
         for (code, action) in cases {
             assert_eq!(action_for(press(code)), Some(action), "{code:?}");
@@ -744,7 +823,7 @@ mod tests {
             margin: true,
             ..options()
         };
-        let pager = Pager::new(&book, &settings, &NoopResourceHandler, options, None);
+        let pager = Pager::new(book, &settings, &NoopResourceHandler, options, None);
         let area = pager.content_area(Rect::new(0, 0, 100, 9));
         assert_eq!(area, Rect::new(2, 0, 20, 9));
         let area = pager.content_area(Rect::new(0, 0, 1, 9));
@@ -819,6 +898,49 @@ mod tests {
                 assert!(!shown.contains("Contents"), "{shown}");
             });
         }
+    }
+
+    #[test]
+    fn o_switches_to_the_next_order_keeping_the_document_and_its_scroll() {
+        let book = fixture_book("index-table");
+        let syntax_set = two_face::syntax::extra_newlines();
+        let settings = settings(&syntax_set);
+        let mut pager = Pager::new(book, &settings, &NoopResourceHandler, options(), None);
+        pager.apply(Action::NextDocument);
+        draw(&mut pager, 30, 4);
+        pager.apply(Action::LineDown);
+        assert_eq!(pager.path().file_name().unwrap(), "goals.md");
+        let status = row(&draw(&mut pager, 120, 4), 3);
+        assert!(
+            status.contains("2/10   README.md, by path +3 unlisted"),
+            "{status:?}"
+        );
+
+        pager.apply(Action::NextOrder);
+        assert_eq!(pager.path().file_name().unwrap(), "goals.md");
+        assert_eq!(pager.current, 4);
+        let status = row(&draw(&mut pager, 120, 4), 3);
+        assert!(status.contains("5/10   README + by path"), "{status:?}");
+
+        pager.apply(Action::NextOrder);
+        assert_eq!(pager.current, 1);
+        assert_eq!(pager.book().order, BookOrder::Auto);
+        draw(&mut pager, 30, 4);
+        assert_eq!(pager.scroll(), 1);
+    }
+
+    #[test]
+    fn o_does_nothing_with_one_order_or_with_the_contents_open() {
+        with_pager(|pager| {
+            pager.apply(Action::NextDocument);
+            pager.apply(Action::NextOrder);
+            assert_eq!(pager.current, 1);
+            assert_eq!(pager.books.len(), 1);
+            pager.apply(Action::ToggleContents);
+            pager.apply(Action::NextOrder);
+            assert!(pager.contents.is_some());
+            assert_eq!(pager.current, 1);
+        });
     }
 
     #[test]

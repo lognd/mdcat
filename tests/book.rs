@@ -189,3 +189,64 @@ fn pager_quits_on_q_and_restores_the_terminal() {
     assert!(output.contains("1/2"), "{output}");
     assert!(output.contains("README + by path"), "{output}");
 }
+
+#[test]
+fn order_flag_picks_the_order_source() {
+    let output = run_mdcat(&["--order", "path", "tests/book/with-summary"]);
+    assert_in_order(
+        &output,
+        &[
+            "last chapter of the sample book",
+            "Install the thing",
+            "first chapter of the sample book",
+            "Not written yet",
+            "never read",
+        ],
+    );
+}
+
+#[test]
+fn summary_order_without_a_summary_fails() {
+    let output = run_mdcat(&["--order", "summary", "tests/book/without-summary"]);
+    assert!(!output.status.success());
+    assert!(std::str::from_utf8(&output.stderr)
+        .unwrap()
+        .contains("No SUMMARY.md to read"));
+}
+
+#[test]
+fn order_flag_needs_a_book() {
+    let output = run_mdcat(&["--order", "path", "tests/book/with-summary/intro.md"]);
+    assert!(!output.status.success());
+    assert!(std::str::from_utf8(&output.stderr)
+        .unwrap()
+        .contains("--order only applies when reading a book"));
+}
+
+#[test]
+fn book_order_config_default_is_used_and_overridable() {
+    let config_dir = std::env::temp_dir().join(format!(
+        "mdcat-book-test-config-{}-book-order",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(config_dir.join("mdcat")).unwrap();
+    std::fs::write(
+        config_dir.join("mdcat/config.toml"),
+        "[defaults]\nbook_order = \"path\"\n",
+    )
+    .unwrap();
+    let run = |extra: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_mdcat"))
+            .args(extra)
+            .arg("tests/book/with-summary")
+            .env("XDG_CONFIG_HOME", &config_dir)
+            .output()
+            .unwrap()
+    };
+    let from_config = run(&[]);
+    assert!(stdout(&from_config).contains("never read"));
+    let overridden = run(&["--order", "auto"]);
+    assert_in_order(&overridden, &SUMMARY_ORDER);
+    assert!(!stdout(&overridden).contains("never read"));
+    std::fs::remove_dir_all(&config_dir).unwrap();
+}

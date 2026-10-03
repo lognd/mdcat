@@ -439,15 +439,35 @@ fn main() {
         } else {
             args.filenames.clone()
         };
-        let book = match book::book_target(&filenames, args.book)
-            .and_then(|target| target.as_deref().map(book::Book::resolve).transpose())
-        {
+        let book_order = match args.order {
+            Some(order) => order,
+            None => match defaults.and_then(|d| d.book_order.as_deref()) {
+                Some(name) => match mdcat::args::BookOrder::from_str(name, true) {
+                    Ok(order) => order,
+                    Err(_) => {
+                        eprintln!("Error: Invalid book order {name:?} in config file");
+                        std::process::exit(1);
+                    }
+                },
+                None => mdcat::args::BookOrder::default(),
+            },
+        };
+        let book = match book::book_target(&filenames, args.book).and_then(|target| {
+            target
+                .as_deref()
+                .map(|target| book::Book::resolve(target, book_order))
+                .transpose()
+        }) {
             Ok(book) => book,
             Err(error) => {
                 eprintln!("Error: {error:#}");
                 std::process::exit(1);
             }
         };
+        if book.is_none() && args.order.is_some() {
+            eprintln!("Error: --order only applies when reading a book");
+            std::process::exit(1);
+        }
         if book.is_some() && args.watch {
             eprintln!("Error: --watch cannot be combined with reading a book");
             std::process::exit(1);
@@ -511,7 +531,7 @@ fn main() {
                         tabs,
                         images: book::PagerImages::from_choice(image_protocol),
                     };
-                    match book::page(book, &settings, &resource_handler, options) {
+                    match book::page(book.clone(), &settings, &resource_handler, options) {
                         Ok(()) => 0,
                         Err(error) => {
                             eprintln!("Error: {error:#}");

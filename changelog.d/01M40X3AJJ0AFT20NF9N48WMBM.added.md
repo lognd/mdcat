@@ -1,0 +1,1 @@
+mdcat: --order (or defaults.book_order) picks where a book's reading order comes from (auto, summary, index, frontmatter, path), and o in the book pager switches between the orders that apply; the contents list unlisted documents under their own heading.

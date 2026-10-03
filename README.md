@@ -145,7 +145,9 @@ On a terminal the book opens in a built-in pager: <kbd>Left</kbd>/<kbd>Right</kb
 <kbd>q</kbd> quits. Each document remembers where you left it, and a status line shows the
 document's title and position in the book. <kbd>Tab</kbd> opens a table of contents of the whole
 book: pick a document with the arrows and <kbd>Enter</kbd>, or close it again with
-<kbd>Tab</kbd> or <kbd>Esc</kbd>. Piped or redirected, every document is rendered in
+<kbd>Tab</kbd> or <kbd>Esc</kbd>. When detection picks the wrong order, <kbd>o</kbd> switches to
+the next one that applies, and `--order auto|summary|index|frontmatter|path` (or
+`defaults.book_order` in the config file) chooses one up front. Piped or redirected, every document is rendered in
 reading order instead.
 
 [mdBook]: https://rust-lang.github.io/mdBook/format/summary.html

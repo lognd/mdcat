@@ -19,35 +19,74 @@ const INDENT: usize = 2;
 /// The key hint on the bottom border of the overlay.
 const HINT: &str = " Enter open  Tab/Esc close ";
 
-/// The open table of contents: which document is selected.
+/// The heading above documents an index document left out.
+const UNLISTED_HEADING: &str = "Unlisted";
+
+/// A row of the table of contents.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Row {
+    /// The heading above a run of unlisted documents, at this depth; never selected.
+    Unlisted(usize),
+    /// The document at this index in reading order.
+    Chapter(usize),
+}
+
+/// The open table of contents: its rows and which document is selected.
 #[derive(Debug)]
 pub(crate) struct Contents {
-    count: usize,
+    rows: Vec<Row>,
+    /// The indices in `rows` of the rows that are documents, in order.
+    chapter_rows: Vec<usize>,
     state: ListState,
     /// Rows of entries shown by the last render, for paging.
     view_height: u16,
 }
 
 impl Contents {
-    /// Open the table of contents of `count` documents, selecting the `current` one.
-    pub(crate) fn new(current: usize, count: usize) -> Self {
+    /// Open the table of contents of `book`, selecting the `current` document.
+    pub(crate) fn new(current: usize, book: &Book) -> Self {
+        let mut rows = Vec::new();
+        for (index, chapter) in book.chapters.iter().enumerate() {
+            let starts_run = index == 0 || !book.chapters[index - 1].unlisted;
+            if chapter.unlisted && starts_run {
+                rows.push(Row::Unlisted(chapter.depth));
+            }
+            rows.push(Row::Chapter(index));
+        }
+        let chapter_rows: Vec<usize> = rows
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| matches!(row, Row::Chapter(_)))
+            .map(|(position, _)| position)
+            .collect();
+        let selected = chapter_rows.get(current).copied();
         Contents {
-            count,
-            state: ListState::default().with_selected(Some(current)),
+            rows,
+            chapter_rows,
+            state: ListState::default().with_selected(selected),
             view_height: 0,
         }
     }
 
     /// The index of the selected document in reading order.
     pub(crate) fn selected(&self) -> usize {
-        self.state.selected().unwrap_or(0)
+        match self.state.selected().and_then(|row| self.rows.get(row)) {
+            Some(Row::Chapter(index)) => *index,
+            Some(Row::Unlisted(_)) | None => 0,
+        }
     }
 
-    /// Select the document `delta` entries away, stopping at the first and last.
+    /// Select the document `delta` documents away, stopping at the first and last and skipping
+    /// headings.
     pub(crate) fn move_by(&mut self, delta: isize) {
-        let last = self.count.saturating_sub(1);
-        let selected = self.selected().saturating_add_signed(delta).min(last);
-        self.state.select(Some(selected));
+        let position = self
+            .chapter_rows
+            .iter()
+            .position(|row| Some(*row) == self.state.selected())
+            .unwrap_or(0);
+        let last = self.chapter_rows.len().saturating_sub(1);
+        let position = position.saturating_add_signed(delta).min(last);
+        self.state.select(self.chapter_rows.get(position).copied());
     }
 
     /// The number of entries a page up or down moves.
@@ -58,17 +97,27 @@ impl Contents {
     /// Draw the overlay centred in `area` over whatever is there, highlighting the selection and
     /// marking the `current` document.
     pub(crate) fn render(&mut self, book: &Book, current: usize, area: Rect, buf: &mut Buffer) {
-        let items: Vec<ListItem<'_>> = book
-            .chapters
+        let items: Vec<ListItem<'_>> = self
+            .rows
             .iter()
-            .enumerate()
-            .map(|(index, chapter)| {
-                let text = format!(" {}{} ", " ".repeat(chapter.depth * INDENT), chapter.title);
-                let style = if index == current {
-                    Style::new().add_modifier(Modifier::BOLD)
-                } else {
-                    Style::new()
+            .map(|row| {
+                let (depth, title, style) = match *row {
+                    Row::Unlisted(depth) => (
+                        depth,
+                        UNLISTED_HEADING,
+                        Style::new().add_modifier(Modifier::DIM | Modifier::ITALIC),
+                    ),
+                    Row::Chapter(index) => {
+                        let chapter = &book.chapters[index];
+                        let style = if index == current {
+                            Style::new().add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::new()
+                        };
+                        (chapter.depth, chapter.title.as_str(), style)
+                    }
                 };
+                let text = format!(" {}{title} ", " ".repeat(depth * INDENT));
                 ListItem::new(Line::styled(text, style))
             })
             .collect();
@@ -112,14 +161,73 @@ fn centred(area: Rect, columns: usize, rows: usize) -> Rect {
 mod tests {
     use super::*;
 
+    use std::path::PathBuf;
+
+    use mdcat::args::BookOrder;
+
+    use crate::book::order::{Chapter, OrderSource};
+
+    /// A book of `unlisted.len()` documents, the ones flagged true unlisted.
+    fn book(unlisted: &[bool]) -> Book {
+        Book {
+            target: PathBuf::from("book"),
+            order: BookOrder::Auto,
+            chapters: unlisted
+                .iter()
+                .enumerate()
+                .map(|(index, unlisted)| Chapter {
+                    path: PathBuf::from(format!("{index}.md")),
+                    title: format!("Doc {index}"),
+                    depth: 0,
+                    unlisted: *unlisted,
+                })
+                .collect(),
+            sources: vec![OrderSource::Path],
+        }
+    }
+
     #[test]
     fn selection_starts_at_the_current_document_and_stops_at_the_ends() {
-        let mut contents = Contents::new(2, 4);
+        let mut contents = Contents::new(2, &book(&[false; 4]));
         assert_eq!(contents.selected(), 2);
         contents.move_by(5);
         assert_eq!(contents.selected(), 3);
         contents.move_by(-10);
         assert_eq!(contents.selected(), 0);
+    }
+
+    #[test]
+    fn unlisted_runs_get_a_heading_the_selection_skips() {
+        let book = book(&[false, false, true, true]);
+        let mut contents = Contents::new(1, &book);
+        assert_eq!(
+            contents.rows,
+            vec![
+                Row::Chapter(0),
+                Row::Chapter(1),
+                Row::Unlisted(0),
+                Row::Chapter(2),
+                Row::Chapter(3)
+            ]
+        );
+        contents.move_by(1);
+        assert_eq!(contents.selected(), 2);
+        contents.move_by(-1);
+        assert_eq!(contents.selected(), 1);
+        contents.move_by(isize::MAX);
+        assert_eq!(contents.selected(), 3);
+
+        let mut buffer = Buffer::empty(Rect::new(0, 0, 40, 12));
+        contents.render(&book, 1, buffer.area, &mut buffer);
+        let screen: String = (0..12)
+            .map(|y| (0..40).map(|x| buffer[(x, y)].symbol()).collect::<String>() + "\n")
+            .collect();
+        let doc = screen.find("Doc 1").unwrap();
+        let heading = screen.find("Unlisted").unwrap();
+        assert!(
+            doc < heading && heading < screen.find("Doc 2").unwrap(),
+            "{screen}"
+        );
     }
 
     #[test]

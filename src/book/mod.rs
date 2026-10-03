@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Result};
 
 mod contents;
-mod order;
+pub(crate) mod order;
 mod pager;
 
 pub use order::Book;

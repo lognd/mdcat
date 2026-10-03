@@ -53,6 +53,8 @@ pub struct Defaults {
     pub image_protocol: Option<String>,
     /// Default for `--tabs`.
     pub tabs: Option<u16>,
+    /// Default for `--order`: `"auto"`, `"summary"`, `"index"`, `"frontmatter"`, or `"path"`.
+    pub book_order: Option<String>,
 }
 
 /// Theme customisation: a built-in theme as a starting point, plus style overrides.

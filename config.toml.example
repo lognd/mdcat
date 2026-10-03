@@ -33,6 +33,9 @@ image_protocol = "kitty"
 # Expand tabs in the input to spaces, using this tab stop width, before parsing (same as --tabs).
 # Off by default (omit this key), so literal tabs pass through unchanged.
 tabs = 4
+# Where a book's reading order comes from (same as --order): "auto" (the default) detects it per
+# directory; "summary", "index", "frontmatter" or "path" use only that source.
+book_order = "auto"
 
 # [theme] customises colours and styles, starting from a built-in theme.
 [theme]
