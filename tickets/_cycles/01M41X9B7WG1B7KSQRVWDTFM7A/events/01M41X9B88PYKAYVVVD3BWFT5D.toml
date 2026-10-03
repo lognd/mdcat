@@ -1,0 +1,9 @@
+kind = "create"
+object = "cycle"
+goal = "Make the fork explicit: FORK.md, README note, version suffix"
+start = "2026-10-03"
+end = "2026-10-04"
+ordinal = 2
+at = "2026-10-03T22:13:52Z"
+actor = "lognd"
+rev = 1
