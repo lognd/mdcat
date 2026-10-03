@@ -1,0 +1,10 @@
+kind = "create"
+title = "Book mode: read a set of markdown docs in order inside mdcat"
+type = "epic"
+category = "todo"
+priority = "medium"
+idempotency_key = "mdcat-book-epic"
+body = "Read long documentation sets in the terminal like a book: in reading order, file to file, without leaving the pager. Owner decisions 2026-10-03: --book/-b flag, a directory argument implies book mode; non-TTY prints all docs in order; inline images when the terminal supports them; status line shows title, n/N, order source, scroll percent and a key hint."
+at = "2026-10-03T11:51:09Z"
+actor = "lognd"
+rev = 1
