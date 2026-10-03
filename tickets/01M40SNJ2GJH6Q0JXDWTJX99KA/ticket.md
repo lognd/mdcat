@@ -8,7 +8,7 @@ points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T11:51:23Z"
-updated = "2026-10-03T12:00:00Z"
+updated = "2026-10-03T12:00:02Z"
 persona = "a reader of long documentation sets"
 capability = "point mdcat at a directory or SUMMARY.md and get every document in reading order"
 outcome_text = "I read a doc set in its intended order without listing files by hand"
@@ -29,5 +29,5 @@ bound = true
 
 [[acceptance]]
 text = "Given mdcat docs/SUMMARY.md without --book, When it runs, Then that single file renders exactly as before"
-bound = false
+bound = true
 +++
