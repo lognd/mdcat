@@ -46,6 +46,9 @@ pub struct Chapter {
     /// The title to show for the document: its summary link text, else its first heading,
     /// else its file stem.
     pub title: String,
+    /// How deeply the document nests: its list level in the summary, or its directory level
+    /// below the book; 0 at the top.
+    pub depth: usize,
 }
 
 /// A set of Markdown documents in reading order.
@@ -114,7 +117,11 @@ impl Book {
                 } else {
                     entry.title.trim().to_string()
                 };
-                Chapter { path, title }
+                Chapter {
+                    path,
+                    title,
+                    depth: entry.depth,
+                }
             })
             .collect();
         Ok(Book {
@@ -133,6 +140,9 @@ impl Book {
             .into_iter()
             .map(|path| Chapter {
                 title: title_from_file(&path),
+                depth: path.strip_prefix(directory).map_or(0, |relative| {
+                    relative.components().count().saturating_sub(1)
+                }),
                 path,
             })
             .collect();
@@ -180,6 +190,8 @@ struct SummaryEntry {
     target: String,
     /// The link text.
     title: String,
+    /// How many lists the link is nested in, less one; 0 outside lists too.
+    depth: usize,
 }
 
 /// Collect the chapter links of an mdBook summary in depth-first (document) order.
@@ -190,13 +202,17 @@ fn parse_summary(markdown: &str) -> Vec<SummaryEntry> {
     let mut entries = Vec::new();
     let mut seen = HashSet::new();
     let mut current: Option<SummaryEntry> = None;
+    let mut lists = 0_usize;
     for event in Parser::new_ext(markdown, markdown_options(false)) {
         match event {
+            Event::Start(Tag::List(_)) => lists += 1,
+            Event::End(TagEnd::List(_)) => lists = lists.saturating_sub(1),
             Event::Start(Tag::Link { dest_url, .. }) => {
                 let target = dest_url.split('#').next().unwrap_or_default();
                 current = Some(SummaryEntry {
                     target: target.to_string(),
                     title: String::new(),
+                    depth: lists.saturating_sub(1),
                 });
             }
             Event::Text(text) | Event::Code(text) => {
@@ -288,17 +304,18 @@ mod tests {
         assert_eq!(
             entries,
             vec![
-                ("preface.md", "Preface"),
-                ("intro.md", "Intro"),
-                ("guide/setup.md", "Setup"),
-                ("guide/deep.md", "Deep"),
-                ("guide/usage.md", "Usage"),
-                ("appendix.md", "Appendix A"),
+                ("preface.md", "Preface", 0),
+                ("intro.md", "Intro", 0),
+                ("guide/setup.md", "Setup", 1),
+                ("guide/deep.md", "Deep", 2),
+                ("guide/usage.md", "Usage", 1),
+                ("appendix.md", "Appendix A", 0),
             ]
             .into_iter()
-            .map(|(target, title)| SummaryEntry {
+            .map(|(target, title, depth)| SummaryEntry {
                 target: target.to_string(),
                 title: title.to_string(),
+                depth,
             })
             .collect::<Vec<_>>()
         );
@@ -346,6 +363,8 @@ mod tests {
             relative_paths(&book, &root),
             vec!["README.md", "alpha.md", "nested/README.md", "zeta.md"]
         );
+        let depths: Vec<_> = book.chapters.iter().map(|chapter| chapter.depth).collect();
+        assert_eq!(depths, vec![0, 0, 1, 0]);
         // Titled by first heading, or by file stem without one.
         assert_eq!(book.chapters[0].title, "Plain book");
         assert_eq!(book.chapters[3].title, "zeta");

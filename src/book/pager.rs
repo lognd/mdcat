@@ -25,10 +25,11 @@ use ratatui::text::Line;
 use ratatui::{Frame, Terminal};
 use tracing::{event, Level};
 
+use super::contents::Contents;
 use super::Book;
 
 /// The key hint at the right of the status line.
-const KEY_HINT: &str = "<-/-> file  q quit";
+const KEY_HINT: &str = "<-/-> file  Tab contents  q quit";
 
 /// Columns of left margin with `--margin`, matching mdcat's margin writer.
 const MARGIN_COLUMNS: u16 = 2;
@@ -92,6 +93,9 @@ pub(crate) enum Action {
     PageUp,
     Top,
     Bottom,
+    ToggleContents,
+    CloseContents,
+    Confirm,
     Quit,
 }
 
@@ -111,6 +115,9 @@ pub(crate) fn action_for(key: KeyEvent) -> Option<Action> {
         KeyCode::Char('g') => Action::Top,
         KeyCode::Char('G') => Action::Bottom,
         KeyCode::Char('q') => Action::Quit,
+        KeyCode::Tab => Action::ToggleContents,
+        KeyCode::Esc => Action::CloseContents,
+        KeyCode::Enter => Action::Confirm,
         _ => return None,
     };
     Some(action)
@@ -136,6 +143,8 @@ pub(crate) struct Pager<'a> {
     image_picker: Option<ImagePicker>,
     documents: Vec<Document<'a>>,
     current: usize,
+    /// The table of contents, while it is open.
+    contents: Option<Contents>,
     /// Rows of document shown by the last draw, for paging and clamping.
     view_height: u16,
 }
@@ -173,6 +182,7 @@ impl<'a> Pager<'a> {
             image_picker,
             documents,
             current: 0,
+            contents: None,
             view_height: 0,
         }
     }
@@ -197,8 +207,39 @@ impl<'a> Pager<'a> {
         }
     }
 
-    /// Apply `action`; returns `false` once the reader asked to quit.
+    /// Apply `action` to the table of contents if it is open, else to the open document;
+    /// returns `false` once the reader asked to quit.
     pub(crate) fn apply(&mut self, action: Action) -> bool {
+        match self.contents.as_mut() {
+            Some(contents) => {
+                match action {
+                    Action::LineDown => contents.move_by(1),
+                    Action::LineUp => contents.move_by(-1),
+                    Action::PageDown => contents.move_by(contents.page()),
+                    Action::PageUp => contents.move_by(-contents.page()),
+                    Action::Top => contents.move_by(isize::MIN),
+                    Action::Bottom => contents.move_by(isize::MAX),
+                    Action::Confirm => {
+                        let selected = contents.selected();
+                        self.close_contents();
+                        self.open(selected);
+                    }
+                    Action::ToggleContents | Action::CloseContents => self.close_contents(),
+                    Action::Quit => return self.apply_to_document(action),
+                    Action::NextDocument | Action::PreviousDocument => {}
+                }
+                true
+            }
+            None => self.apply_to_document(action),
+        }
+    }
+
+    fn close_contents(&mut self) {
+        event!(target: "mdcat::book", Level::DEBUG, "Closing the table of contents");
+        self.contents = None;
+    }
+
+    fn apply_to_document(&mut self, action: Action) -> bool {
         let page = self.view_height.saturating_sub(1).max(1);
         match action {
             Action::NextDocument => self.open(self.current + 1),
@@ -209,6 +250,11 @@ impl<'a> Pager<'a> {
             Action::PageUp => self.scroll_to(self.scroll().saturating_sub(page)),
             Action::Top => self.scroll_to(0),
             Action::Bottom => self.scroll_to(u16::MAX),
+            Action::ToggleContents => {
+                event!(target: "mdcat::book", Level::DEBUG, "Opening the table of contents");
+                self.contents = Some(Contents::new(self.current, self.documents.len()));
+            }
+            Action::CloseContents | Action::Confirm => {}
             Action::Quit => {
                 event!(target: "mdcat::book", Level::DEBUG, "Quitting the pager");
                 return false;
@@ -319,6 +365,9 @@ impl<'a> Pager<'a> {
             self.render_document(frame, content);
         }
         frame.render_widget(self.status_line(status.width), status);
+        if let Some(contents) = self.contents.as_mut() {
+            contents.render(self.book, self.current, body, frame.buffer_mut());
+        }
     }
 
     fn render_document(&mut self, frame: &mut Frame<'_>, area: Rect) {
@@ -471,6 +520,22 @@ mod tests {
             .collect::<String>()
     }
 
+    /// The position of the first cell of `needle` inside the bordered contents overlay.
+    fn find(buffer: &Buffer, needle: &str) -> (u16, u16) {
+        (0..buffer.area.height)
+            .find_map(|y| {
+                let row = row(buffer, y);
+                let inside = row.split('\u{2502}').nth(1)?;
+                let start = row.find(inside)?;
+                inside.find(needle).map(|offset| {
+                    let byte = start + offset;
+                    let x = row[..byte].chars().count();
+                    (u16::try_from(x).unwrap(), y)
+                })
+            })
+            .unwrap_or_else(|| panic!("{needle:?} not on screen:\n{}", screen(buffer)))
+    }
+
     fn screen(buffer: &Buffer) -> String {
         (0..buffer.area.height)
             .map(|y| row(buffer, y))
@@ -512,6 +577,9 @@ mod tests {
             (KeyCode::Char('g'), Action::Top),
             (KeyCode::Char('G'), Action::Bottom),
             (KeyCode::Char('q'), Action::Quit),
+            (KeyCode::Tab, Action::ToggleContents),
+            (KeyCode::Esc, Action::CloseContents),
+            (KeyCode::Enter, Action::Confirm),
         ];
         for (code, action) in cases {
             assert_eq!(action_for(press(code)), Some(action), "{code:?}");
@@ -598,7 +666,10 @@ mod tests {
                 status.starts_with(" First chapter   1/2   README + by path   0%"),
                 "{status:?}"
             );
-            assert!(status.ends_with("<-/-> file  q quit "), "{status:?}");
+            assert!(
+                status.ends_with("<-/-> file  Tab contents  q quit "),
+                "{status:?}"
+            );
             pager.apply(Action::Bottom);
             let status = row(&draw(pager, 80, 10), 9);
             assert!(status.contains("100%"), "{status:?}");
@@ -642,6 +713,84 @@ mod tests {
         assert_eq!(area, Rect::new(2, 0, 20, 9));
         let area = pager.content_area(Rect::new(0, 0, 1, 9));
         assert_eq!(area, Rect::new(1, 0, 0, 9));
+    }
+
+    #[test]
+    fn contents_are_closed_until_tab_opens_them() {
+        with_pager(|pager| {
+            let closed = screen(&draw(pager, 60, 10));
+            assert!(!pager.contents.is_some());
+            assert!(!closed.contains("Contents"), "{closed}");
+            pager.apply(Action::ToggleContents);
+            let open = screen(&draw(pager, 60, 10));
+            assert!(open.contains("Contents 1/2"), "{open}");
+            assert!(open.contains("First chapter"), "{open}");
+            assert!(open.contains("Second chapter"), "{open}");
+            assert!(open.contains("Enter open"), "{open}");
+        });
+    }
+
+    #[test]
+    fn contents_highlight_the_current_document() {
+        with_pager(|pager| {
+            pager.apply(Action::NextDocument);
+            pager.apply(Action::ToggleContents);
+            let buffer = draw(pager, 60, 10);
+            let (x, y) = find(&buffer, "Second chapter");
+            let cell = &buffer[(x, y)];
+            assert!(cell.modifier.contains(Modifier::REVERSED), "selected");
+            assert!(cell.modifier.contains(Modifier::BOLD), "current");
+            let (x, y) = find(&buffer, " First chapter ");
+            assert!(!buffer[(x + 1, y)].modifier.contains(Modifier::REVERSED));
+        });
+    }
+
+    #[test]
+    fn enter_jumps_to_the_selected_document_and_closes_the_contents() {
+        with_pager(|pager| {
+            draw(pager, 60, 10);
+            pager.apply(Action::PageDown);
+            let scroll = pager.scroll();
+            pager.apply(Action::ToggleContents);
+            pager.apply(Action::LineDown);
+            // Left and Right do nothing while the contents are open.
+            pager.apply(Action::PreviousDocument);
+            pager.apply(Action::Confirm);
+            assert!(!pager.contents.is_some());
+            assert_eq!(pager.current, 1);
+            let shown = screen(&draw(pager, 60, 10));
+            assert!(!shown.contains("Contents"), "{shown}");
+            pager.apply(Action::ToggleContents);
+            pager.apply(Action::Top);
+            pager.apply(Action::Confirm);
+            assert_eq!(pager.current, 0);
+            assert_eq!(pager.scroll(), scroll);
+        });
+    }
+
+    #[test]
+    fn tab_or_esc_close_the_contents_without_moving() {
+        for close in [Action::ToggleContents, Action::CloseContents] {
+            with_pager(|pager| {
+                draw(pager, 60, 10);
+                pager.apply(Action::ToggleContents);
+                pager.apply(Action::Bottom);
+                pager.apply(close);
+                assert!(!pager.contents.is_some());
+                assert_eq!(pager.current, 0);
+                assert_eq!(pager.scroll(), 0);
+                let shown = screen(&draw(pager, 60, 10));
+                assert!(!shown.contains("Contents"), "{shown}");
+            });
+        }
+    }
+
+    #[test]
+    fn quit_works_with_the_contents_open() {
+        with_pager(|pager| {
+            pager.apply(Action::ToggleContents);
+            assert!(!pager.apply(Action::Quit));
+        });
     }
 
     #[test]

@@ -140,7 +140,9 @@ On a terminal the book opens in a built-in pager: <kbd>Left</kbd>/<kbd>Right</kb
 <kbd>h</kbd>/<kbd>l</kbd>) move to the previous or next document, <kbd>Up</kbd>/<kbd>Down</kbd>,
 <kbd>PgUp</kbd>/<kbd>PgDn</kbd>, <kbd>Space</kbd> and <kbd>g</kbd>/<kbd>G</kbd> scroll, and
 <kbd>q</kbd> quits. Each document remembers where you left it, and a status line shows the
-document's title and position in the book. Piped or redirected, every document is rendered in
+document's title and position in the book. <kbd>Tab</kbd> opens a table of contents of the whole
+book: pick a document with the arrows and <kbd>Enter</kbd>, or close it again with
+<kbd>Tab</kbd> or <kbd>Esc</kbd>. Piped or redirected, every document is rendered in
 reading order instead.
 
 [mdBook]: https://rust-lang.github.io/mdBook/format/summary.html

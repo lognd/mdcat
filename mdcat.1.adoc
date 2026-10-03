@@ -83,7 +83,12 @@ kbd:[Left], kbd:[h]:: Previous document in reading order.
 kbd:[Down], kbd:[Up]:: Scroll by one line.
 kbd:[PgDn], kbd:[Space], kbd:[PgUp]:: Scroll by a page.
 kbd:[g], kbd:[G]:: Go to the top or the bottom of the document.
+kbd:[Tab]:: Open the table of contents.
 kbd:[q], kbd:[Ctrl+C]:: Quit.
+
+The table of contents lists every document in reading order, indented by its nesting in `SUMMARY.md` (or its directory below the book), with the current document in bold and selected.
+It is never shown unless asked for.
+While it is open, kbd:[Up], kbd:[Down], kbd:[PgUp], kbd:[PgDn], kbd:[g] and kbd:[G] move the selection, kbd:[Enter] opens the selected document, and kbd:[Tab] or kbd:[Esc] close it without moving.
 
 When standard output is not a terminal, mdcat renders every document of the book in reading order, as if they were given as ``FILE``s.
 
