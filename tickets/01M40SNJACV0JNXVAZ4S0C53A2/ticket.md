@@ -8,7 +8,7 @@ points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T11:51:23Z"
-updated = "2026-10-03T12:12:06Z"
+updated = "2026-10-03T12:21:37Z"
 persona = "a reader of long documentation sets"
 capability = "open a list of all documents on demand and jump to one"
 outcome_text = "I can find my place without the list ever being in the way"
@@ -21,7 +21,7 @@ target = "01M40SNJ6CH7GVCDJE0EPP5C3X"
 
 [[acceptance]]
 text = "Given the pager, When it opens, Then no table of contents is shown"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given the pager, When Tab is pressed, Then a table of contents of the documents in reading order opens with the current one highlighted"
