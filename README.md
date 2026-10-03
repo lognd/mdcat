@@ -129,12 +129,13 @@ Point `mdcat` at a directory, or pass `--book` (`-b`) with an [mdBook]-style `SU
 a whole set of documents in order:
 
 ```console
-$ mdcat docs                  # docs/SUMMARY.md order, else README.md first, then by path
+$ mdcat docs                  # SUMMARY.md order, else README.md first, then by name
 $ mdcat --book docs/SUMMARY.md
 ```
 
-The reading order comes from the links in `SUMMARY.md`, depth-first; without one, `README.md`
-comes first and the other Markdown files follow by path.
+Each directory is ordered on its own: by the links in its `SUMMARY.md`, depth-first; without
+one, its `README.md` (or `index.md`) comes first and the other documents and subdirectories follow
+by name, in natural order (`ch2.md` before `ch10.md`).
 
 On a terminal the book opens in a built-in pager: <kbd>Left</kbd>/<kbd>Right</kbd> (or
 <kbd>h</kbd>/<kbd>l</kbd>) move to the previous or next document, <kbd>Up</kbd>/<kbd>Down</kbd>,

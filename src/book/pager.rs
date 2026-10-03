@@ -390,7 +390,7 @@ impl<'a> Pager<'a> {
             chapter.title,
             self.current + 1,
             self.book.chapters.len(),
-            self.book.order,
+            self.book.order_label(),
             self.progress()
         );
         let used = Line::from(left.as_str()).width() + KEY_HINT.len() + 1;

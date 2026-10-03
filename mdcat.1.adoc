@@ -70,13 +70,18 @@ Once a file is selected, `mdpick` renders it exactly as `mdless` would, paginati
 With `--book`, or given a single `DIRECTORY`, mdcat reads a set of documents in order, like a book.
 The argument is a directory, or an mdBook `SUMMARY.md` file; with `--book` alone it reads the current directory.
 
-The reading order comes from `SUMMARY.md` (in the directory, or the file given): every link to a local Markdown file, depth-first in the order of its nested lists, skipping draft chapters with empty links, external links, and links repeated later.
-Without a summary, the order is `README.md` first, then every other `.md` file below the directory sorted by path, honouring `.gitignore` the same way `mdpick` does.
+mdcat collects every `.md` file below the directory, honouring `.gitignore` the same way `mdpick` does, and orders each directory on its own, subdirectories in their place in their parent:
+
+* A directory with a `SUMMARY.md` reads the documents it links, depth-first in the order of its nested lists, skipping draft chapters with empty links, external links, and links repeated later; documents it does not link are left out.
+  Given a summary file instead of a directory, mdcat reads that summary.
+* Otherwise the directory's `README.md` (or else `index.md`) comes first, then its other documents and subdirectories by name, in natural order: case does not matter and numbers compare by value, so `ch2.md` comes before `ch10.md`.
+
+A document only appears once, where it is first placed.
 
 On a terminal the book opens in mdcat's built-in pager, one document at a time; `--paginate`, `$MDCAT_PAGER` and `$PAGER` do not apply.
 The pager renders documents at the width mdcat would use (see `--columns` and `--full-width`), re-renders them when the terminal is resized, and draws inline images if the terminal supports the kitty, iTerm2 or Sixel graphics protocol (or the one `--image-protocol` names; `none` shows images as text).
 Each document keeps its scroll position while you move back and forth.
-A quiet status line at the bottom shows the document's title, its position in the book (for example `3/17`), where the reading order came from (`SUMMARY.md`, or `README + by path`), how far down the document you are (`(END)` once its last line is visible, followed by the title of the next document if there is one), and a key hint.
+A quiet status line at the bottom shows the document's title, its position in the book (for example `3/17`), where the reading order came from (`README + by path`, or the sources used, such as `by path, guide/SUMMARY.md`), how far down the document you are (`(END)` once its last line is visible, followed by the title of the next document if there is one), and a key hint.
 
 kbd:[Right], kbd:[l]:: Next document in reading order.
 kbd:[Left], kbd:[h]:: Previous document in reading order.
