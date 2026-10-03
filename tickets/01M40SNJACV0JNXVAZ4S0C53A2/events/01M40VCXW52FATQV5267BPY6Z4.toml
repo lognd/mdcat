@@ -1,10 +1,10 @@
 kind = "evidence"
 accepts = [1]
 captured_at = "2026-10-03T12:21:37Z"
-digest = "ef4a72bd68257fdc7a01f7e5836b24d540bd22f73a4efe3f69c431221c0faca5"
+digest = "4fc42287101fc3391fb8678c072778ac66657d477de858bd9d9a269a2bbcf84f"
 exit_code = 0
 inline = """
-   Compiling mdcat v2.18.0 (/home/logan/projects/mdcat-wt/S0C53A2)
+   Compiling mdcat v2.18.0 (mdcat-wt/S0C53A2)
     Finished `test` profile [unoptimized + debuginfo] target(s) in 21.54s
 ────────────
  Nextest run ID 467717b6-4203-4f5b-a248-47cf1fce0224 with nextest profile: default
@@ -16,7 +16,7 @@ inline = """
 passed = true
 provider = "nextest"
 ref = "-p mdcat -E 'test(contents_are_closed_until_tab_opens_them)'"
-size = 522
+size = 501
 status = "measured"
 tests = ["book::pager::tests::contents_are_closed_until_tab_opens_them"]
 at = "2026-10-03T12:21:37Z"
