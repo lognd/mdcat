@@ -2,7 +2,8 @@
 id = "01M41X97ZESDP6VG5ZCEH34MT8"
 title = "Mark the repository and binary as the lognd fork"
 type = "docs"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "medium"
 points = 1
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
