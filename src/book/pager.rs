@@ -279,14 +279,17 @@ impl<'a> Pager<'a> {
             .saturating_sub(self.view_height)
     }
 
-    /// How far down the open document the view is, in percent.
-    fn percent(&self) -> u16 {
+    /// How far down the open document the view is: a percent, or `(END)` once its last line is
+    /// visible, followed by the title of the document Right opens next, if any.
+    fn progress(&self) -> String {
         let max = self.max_scroll();
-        if max == 0 {
-            100
-        } else {
+        if self.scroll() < max {
             let percent = u32::from(self.scroll()) * 100 / u32::from(max);
-            u16::try_from(percent).unwrap_or(100)
+            return format!("{percent}%");
+        }
+        match self.book.chapters.get(self.current + 1) {
+            Some(next) => format!("(END) -> {}", next.title),
+            None => "(END)".to_string(),
         }
     }
 
@@ -379,16 +382,16 @@ impl<'a> Pager<'a> {
         }
     }
 
-    /// The status line: title, position, order source and scroll percent, then the key hint.
+    /// The status line: title, position, order source and progress, then the key hint.
     fn status_line(&self, width: u16) -> Line<'static> {
         let chapter = &self.book.chapters[self.current];
         let left = format!(
-            " {}   {}/{}   {}   {}%",
+            " {}   {}/{}   {}   {}",
             chapter.title,
             self.current + 1,
             self.book.chapters.len(),
             self.book.order,
-            self.percent()
+            self.progress()
         );
         let used = Line::from(left.as_str()).width() + KEY_HINT.len() + 1;
         let text = match usize::from(width).checked_sub(used) {
@@ -670,9 +673,42 @@ mod tests {
                 status.ends_with("<-/-> file  Tab contents  q quit "),
                 "{status:?}"
             );
+        });
+    }
+
+    #[test]
+    fn end_of_a_document_shows_end_and_the_next_title() {
+        with_pager(|pager| {
+            draw(pager, 80, 10);
+            pager.apply(Action::PageDown);
+            let status = row(&draw(pager, 80, 10), 9);
+            assert!(
+                status.contains("   1/2   README + by path   "),
+                "{status:?}"
+            );
+            assert!(!status.contains("(END)"), "{status:?}");
             pager.apply(Action::Bottom);
             let status = row(&draw(pager, 80, 10), 9);
-            assert!(status.contains("100%"), "{status:?}");
+            assert!(
+                status.contains("README + by path   (END) -> Second chapter"),
+                "{status:?}"
+            );
+        });
+    }
+
+    #[test]
+    fn end_of_the_last_document_has_no_next_title() {
+        with_pager(|pager| {
+            pager.apply(Action::NextDocument);
+            draw(pager, 80, 10);
+            pager.apply(Action::Bottom);
+            let status = row(&draw(pager, 80, 10), 9);
+            assert!(
+                status.contains("2/2   README + by path   (END) "),
+                "{status:?}"
+            );
+            assert!(!status.contains("->  "), "{status:?}");
+            assert!(!status.contains("(END) ->"), "{status:?}");
         });
     }
 
