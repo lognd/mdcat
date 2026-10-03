@@ -1,0 +1,23 @@
+kind = "evidence"
+accepts = [3]
+captured_at = "2026-10-03T12:56:26Z"
+digest = "bee7c33269757cbd6084d2ba1947d713c1c4a98f4fecedae9c667592b0f4e645"
+exit_code = 0
+inline = """
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+────────────
+ Nextest run ID 08e7b54c-ab80-4b03-9593-321f15f50c40 with nextest profile: default
+    Starting 1 test across 4 binaries (75 tests skipped)
+        PASS [   0.195s] (1/1) mdcat::bin/mdcat book::pager::tests::end_of_the_last_document_has_no_next_title
+────────────
+     Summary [   0.196s] 1 test run: 1 passed, 75 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(end_of_the_last_document_has_no_next_title)'"
+size = 456
+status = "measured"
+tests = ["book::pager::tests::end_of_the_last_document_has_no_next_title"]
+at = "2026-10-03T12:56:26Z"
+actor = "lognd"
+rev = 1
