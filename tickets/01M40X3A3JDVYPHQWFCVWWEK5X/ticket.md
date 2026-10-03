@@ -8,7 +8,7 @@ points = 5
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T12:51:19Z"
-updated = "2026-10-03T13:04:42Z"
+updated = "2026-10-03T13:11:37Z"
 persona = "a reader of long documentation sets"
 capability = "have mdcat follow the reading order a README table or list already gives"
 outcome_text = "doc sets without a SUMMARY.md, like frob-v2's design docs, read in their intended order"
@@ -21,7 +21,7 @@ target = "01M40X39W6C9913YT4177C6S5M"
 
 [[acceptance]]
 text = "Given a README.md whose table cells or list items name sibling docs as links, code or bare file names, When the directory resolves in auto order, Then those docs follow the README in first-mention order"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given prose mentions of file names outside tables and lists, When references are collected, Then they are ignored unless they are links"
