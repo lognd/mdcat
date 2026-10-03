@@ -1,0 +1,23 @@
+kind = "evidence"
+accepts = [3]
+captured_at = "2026-10-03T12:11:34Z"
+digest = "11a92846f71db2ea9eab4b8f7db30cfefe418dd3b3ee24647f5c15e766162022"
+exit_code = 0
+inline = """
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s
+────────────
+ Nextest run ID babf2e50-f4fb-4aaa-a4ee-111740877b52 with nextest profile: default
+    Starting 1 test across 4 binaries (66 tests skipped)
+        PASS [   0.276s] (1/1) mdcat::bin/mdcat book::pager::tests::each_document_keeps_its_scroll_position
+────────────
+     Summary [   0.278s] 1 test run: 1 passed, 66 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(each_document_keeps_its_scroll_position)'"
+size = 453
+status = "measured"
+tests = ["book::pager::tests::each_document_keeps_its_scroll_position"]
+at = "2026-10-03T12:11:34Z"
+actor = "lognd"
+rev = 1

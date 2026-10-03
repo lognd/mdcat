@@ -1,0 +1,26 @@
+kind = "evidence"
+accepts = [4]
+captured_at = "2026-10-03T12:11:38Z"
+digest = "084a47c1231a9f3dcc5e340d98776b4652b3a294625955a4edb852c5cdfa718d"
+exit_code = 0
+inline = """
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+────────────
+ Nextest run ID 58c2707c-9109-4b90-bf44-d10b68120a9c with nextest profile: default
+    Starting 2 tests across 4 binaries (65 tests skipped)
+        PASS [   0.241s] (1/2) mdcat::bin/mdcat book::pager::tests::narrow_status_line_drops_the_hint
+        PASS [   0.310s] (2/2) mdcat::bin/mdcat book::pager::tests::status_line_shows_title_position_order_percent_and_hint
+────────────
+     Summary [   0.312s] 2 tests run: 2 passed, 65 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(status_line_shows_title_position_order_percent_and_hint) | test(narrow_status_line_drops_the_hint)'"
+size = 677
+status = "measured"
+tests = ["book::pager::tests::narrow_status_line_drops_the_hint", "book::pager::tests::status_line_shows_title_position_order_percent_and_hint"]
+at = "2026-10-03T12:11:38Z"
+actor = "lognd"
+rev = 1

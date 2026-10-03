@@ -1,0 +1,25 @@
+kind = "evidence"
+accepts = [1]
+captured_at = "2026-10-03T12:11:31Z"
+digest = "a0253e7b3b91aaf8df3faa2e8fbfa1fac0d1a86731d01eb09cb0eeb1acf76327"
+exit_code = 0
+inline = """
+   Compiling mdcat v2.18.0 (/home/logan/projects/mdcat-wt/EPP5C3X)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.36s
+────────────
+ Nextest run ID fa97593a-f30f-4222-93ac-e32fc1fb69f7 with nextest profile: default
+    Starting 2 tests across 4 binaries (65 tests skipped)
+        PASS [   0.030s] (1/2) mdcat::bin/mdcat book::pager::tests::keys_map_to_actions
+        PASS [   0.255s] (2/2) mdcat::bin/mdcat book::pager::tests::left_and_right_move_between_documents_and_stop_at_the_ends
+────────────
+     Summary [   0.256s] 2 tests run: 2 passed, 65 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(left_and_right_move_between_documents_and_stop_at_the_ends) | test(keys_map_to_actions)'"
+size = 629
+status = "measured"
+tests = ["book::pager::tests::keys_map_to_actions", "book::pager::tests::left_and_right_move_between_documents_and_stop_at_the_ends"]
+at = "2026-10-03T12:11:31Z"
+actor = "lognd"
+rev = 1
