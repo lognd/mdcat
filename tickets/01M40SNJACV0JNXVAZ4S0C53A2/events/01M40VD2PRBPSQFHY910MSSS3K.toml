@@ -1,0 +1,27 @@
+kind = "evidence"
+accepts = [3]
+captured_at = "2026-10-03T12:21:42Z"
+digest = "b6bbda7d4506468f683cd55d276be2dfb4a28c821898d1603ca55de503dcf37f"
+exit_code = 0
+inline = """
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.47s
+────────────
+ Nextest run ID bd048d54-d5f3-48f8-b773-c24d9845648d with nextest profile: default
+    Starting 2 tests across 4 binaries (72 tests skipped)
+        PASS [   0.015s] (1/2) mdcat::bin/mdcat book::contents::tests::selection_starts_at_the_current_document_and_stops_at_the_ends
+        PASS [   0.187s] (2/2) mdcat::bin/mdcat book::pager::tests::enter_jumps_to_the_selected_document_and_closes_the_contents
+────────────
+     Summary [   0.189s] 2 tests run: 2 passed, 72 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(enter_jumps_to_the_selected_document_and_closes_the_contents) | test(selection_starts_at_the_current_document_and_stops_at_the_ends)'"
+size = 766
+status = "measured"
+tests = ["book::contents::tests::selection_starts_at_the_current_document_and_stops_at_the_ends", "book::pager::tests::enter_jumps_to_the_selected_document_and_closes_the_contents"]
+at = "2026-10-03T12:21:42Z"
+actor = "lognd"
+rev = 1
