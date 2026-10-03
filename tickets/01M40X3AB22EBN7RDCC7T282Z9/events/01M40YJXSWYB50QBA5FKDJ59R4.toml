@@ -1,0 +1,24 @@
+kind = "evidence"
+accepts = [2]
+captured_at = "2026-10-03T13:17:20Z"
+digest = "d0873ac052897db57e4663ebcea570edb38129131680f26f69f0b0bd62a0bc47"
+exit_code = 0
+inline = """
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+────────────
+ Nextest run ID 7a9e4def-1375-46b0-9bbb-15ee340e873b with nextest profile: default
+    Starting 1 test across 4 binaries (90 tests skipped)
+        PASS [   0.026s] (1/1) mdcat::bin/mdcat book::order::tests::frontmatter_weights_order_after_the_readme_and_before_the_rest
+────────────
+     Summary [   0.028s] 1 test run: 1 passed, 90 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(frontmatter_weights_order_after_the_readme_and_before_the_rest)'"
+size = 528
+status = "measured"
+tests = ["book::order::tests::frontmatter_weights_order_after_the_readme_and_before_the_rest"]
+at = "2026-10-03T13:17:20Z"
+actor = "lognd"
+rev = 1
