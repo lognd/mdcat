@@ -8,7 +8,7 @@ points = 5
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T12:51:19Z"
-updated = "2026-10-03T13:11:42Z"
+updated = "2026-10-03T13:11:46Z"
 persona = "a reader of long documentation sets"
 capability = "have mdcat follow the reading order a README table or list already gives"
 outcome_text = "doc sets without a SUMMARY.md, like frob-v2's design docs, read in their intended order"
@@ -37,7 +37,7 @@ bound = true
 
 [[acceptance]]
 text = "Given references to missing files, to paths outside the book, to URLs or repeated, When the book resolves, Then they are skipped"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given an index that references a subdirectory or its README, When the book resolves, Then that subdirectory's resolved order is placed there"
