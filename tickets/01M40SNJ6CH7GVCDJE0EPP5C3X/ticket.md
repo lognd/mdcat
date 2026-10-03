@@ -8,7 +8,7 @@ points = 5
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T11:51:23Z"
-updated = "2026-10-03T12:00:15Z"
+updated = "2026-10-03T12:11:31Z"
 persona = "a reader of long documentation sets"
 capability = "page through the book and move between files with Left/Right"
 outcome_text = "moving to the next document is a pager action, not a new command"
@@ -21,7 +21,7 @@ target = "01M40SNJ2GJH6Q0JXDWTJX99KA"
 
 [[acceptance]]
 text = "Given book mode on a terminal, When Right/l or Left/h is pressed, Then the next or previous document in reading order is shown, staying put at either end"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given a document, When Up/Down, PgUp/PgDn, Space, g or G is pressed, Then the view scrolls by a line, a page, a page, to the top or to the bottom, clamped to the document"
