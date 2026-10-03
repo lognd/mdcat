@@ -319,6 +319,13 @@ mod tests {
             ]
         );
         assert_eq!(book.chapters[0].title, "Introduction");
+        assert_eq!(
+            book.filenames(),
+            book.chapters
+                .iter()
+                .map(|chapter| chapter.path.to_string_lossy().into_owned())
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
