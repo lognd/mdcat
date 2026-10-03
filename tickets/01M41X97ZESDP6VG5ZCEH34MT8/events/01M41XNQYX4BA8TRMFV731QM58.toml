@@ -1,0 +1,27 @@
+kind = "evidence"
+accepts = [3]
+captured_at = "2026-10-03T22:20:38Z"
+digest = "70ef1e4d2c34e96e668fcf289c1fa75438ae66a63e7b5d7fa9bd980714c7adc8"
+exit_code = 0
+inline = '''
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+ Nextest run ID 03dfb126-bf7b-4c60-a785-684bd5744fd7 with nextest profile: default
+    Starting 1 test across 5 binaries (105 tests skipped)
+        PASS [   0.028s] mdcat::fork version_carries_the_fork_suffix
+\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}
+     Summary [   0.034s] 1 test run: 1 passed, 105 skipped
+'''
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'test(version_carries_the_fork_suffix)'"
+size = 744
+status = "measured"
+tests = ["version_carries_the_fork_suffix"]
+at = "2026-10-03T22:20:38Z"
+actor = "lognd"
+rev = 1

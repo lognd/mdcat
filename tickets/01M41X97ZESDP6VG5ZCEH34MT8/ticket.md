@@ -8,7 +8,7 @@ points = 1
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T22:13:48Z"
-updated = "2026-10-03T22:20:37Z"
+updated = "2026-10-03T22:20:38Z"
 persona = "the owner of the fork"
 capability = "see at a glance that this is a fork, what it adds and how to update from upstream"
 outcome_text = "I keep my features while merging upstream releases cleanly"
@@ -25,7 +25,7 @@ bound = true
 
 [[acceptance]]
 text = "Given the fork binary, When mdcat --version runs, Then the version carries the +lognd build suffix"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given an upstream merge that conflicts only in the version line, Cargo.lock or the README note, When scripts/sync-upstream.sh runs, Then it resolves them, builds and tests, and leaves any other conflict for the owner, listing the files"
