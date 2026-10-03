@@ -9,8 +9,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Result};
 
 mod order;
+mod pager;
 
 pub use order::Book;
+pub use pager::{max_columns, run as page, PagerImages, PagerOptions};
 
 /// The directory or summary to read as a book, or `None` outside book mode.
 ///

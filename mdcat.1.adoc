@@ -73,6 +73,18 @@ The argument is a directory, or an mdBook `SUMMARY.md` file; with `--book` alone
 The reading order comes from `SUMMARY.md` (in the directory, or the file given): every link to a local Markdown file, depth-first in the order of its nested lists, skipping draft chapters with empty links, external links, and links repeated later.
 Without a summary, the order is `README.md` first, then every other `.md` file below the directory sorted by path, honouring `.gitignore` the same way `mdpick` does.
 
+On a terminal the book opens in mdcat's built-in pager, one document at a time; `--paginate`, `$MDCAT_PAGER` and `$PAGER` do not apply.
+The pager renders documents at the width mdcat would use (see `--columns` and `--full-width`), re-renders them when the terminal is resized, and draws inline images if the terminal supports the kitty, iTerm2 or Sixel graphics protocol (or the one `--image-protocol` names; `none` shows images as text).
+Each document keeps its scroll position while you move back and forth.
+A quiet status line at the bottom shows the document's title, its position in the book (for example `3/17`), where the reading order came from (`SUMMARY.md`, or `README + by path`), how far down the document you are, and a key hint.
+
+kbd:[Right], kbd:[l]:: Next document in reading order.
+kbd:[Left], kbd:[h]:: Previous document in reading order.
+kbd:[Down], kbd:[Up]:: Scroll by one line.
+kbd:[PgDn], kbd:[Space], kbd:[PgUp]:: Scroll by a page.
+kbd:[g], kbd:[G]:: Go to the top or the bottom of the document.
+kbd:[q], kbd:[Ctrl+C]:: Quit.
+
 When standard output is not a terminal, mdcat renders every document of the book in reading order, as if they were given as ``FILE``s.
 
 A single `SUMMARY.md` given without `--book` still renders as one ordinary document.

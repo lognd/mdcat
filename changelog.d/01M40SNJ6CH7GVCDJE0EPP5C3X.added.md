@@ -1,0 +1,1 @@
+mdcat: on a terminal, book mode opens a built-in pager: Left/Right (h/l) move between documents in reading order, each document keeps its scroll position, and a status line shows the title, position, order source and scroll percent.

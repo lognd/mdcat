@@ -467,6 +467,8 @@ fn main() {
             eprintln!("Error: --watch requires standard output to be a terminal");
             std::process::exit(1);
         }
+        // On a terminal a book opens in the built-in pager, never an external one.
+        let book_pager = book.as_ref().filter(|_| is_tty);
 
         let theme_config = config.as_ref().and_then(|c| c.theme.as_ref());
         let resolved = match resolve_effective_theme(args.theme, theme_config, is_tty) {
@@ -478,7 +480,7 @@ fn main() {
         };
         let syntax_theme = resolve_syntax_theme(resolved.is_light, resolved.default_syntax);
         let theme = resolved.mdcat;
-        let exit_code = match Output::new(args.paginate()) {
+        let exit_code = match Output::new(args.paginate() && book_pager.is_none()) {
             Ok(mut output) => {
                 let settings = Settings {
                     terminal_capabilities,
@@ -502,7 +504,21 @@ fn main() {
                 // frob:todo 01M40T35HH9QCH2V0YJ8198QGZ
                 // TODO: Handle this error properly
                 let resource_handler = create_resource_handler(resource_access).unwrap();
-                if args.watch {
+                if let Some(book) = book_pager {
+                    let options = book::PagerOptions {
+                        max_columns: book::max_columns(columns, full_width),
+                        margin,
+                        tabs,
+                        images: book::PagerImages::from_choice(image_protocol),
+                    };
+                    match book::page(book, &settings, &resource_handler, options) {
+                        Ok(()) => 0,
+                        Err(error) => {
+                            eprintln!("Error: {error:#}");
+                            1
+                        }
+                    }
+                } else if args.watch {
                     match watch_file(
                         &filenames[0],
                         &settings,

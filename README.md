@@ -134,8 +134,14 @@ $ mdcat --book docs/SUMMARY.md
 ```
 
 The reading order comes from the links in `SUMMARY.md`, depth-first; without one, `README.md`
-comes first and the other Markdown files follow by path. Piped or redirected, every document is
-rendered in that order.
+comes first and the other Markdown files follow by path.
+
+On a terminal the book opens in a built-in pager: <kbd>Left</kbd>/<kbd>Right</kbd> (or
+<kbd>h</kbd>/<kbd>l</kbd>) move to the previous or next document, <kbd>Up</kbd>/<kbd>Down</kbd>,
+<kbd>PgUp</kbd>/<kbd>PgDn</kbd>, <kbd>Space</kbd> and <kbd>g</kbd>/<kbd>G</kbd> scroll, and
+<kbd>q</kbd> quits. Each document remembers where you left it, and a status line shows the
+document's title and position in the book. Piped or redirected, every document is rendered in
+reading order instead.
 
 [mdBook]: https://rust-lang.github.io/mdBook/format/summary.html
 

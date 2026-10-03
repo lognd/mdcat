@@ -23,7 +23,8 @@ ignore = "0.4.31"
 mime = { workspace = true}
 notify = "8.2.0"
 pulldown-cmark = { workspace = true, features = ['simd'] }
-pulldown-cmark-mdcat = { workspace = true, default-features = true }
+pulldown-cmark-mdcat = { workspace = true, default-features = true, features = ["ratatui"] }
+ratatui = { version = "0.30", default-features = false, features = ["crossterm"] }
 serde = { version = "1.0.210", default-features = false, features = ["derive"] }
 shell-words = { version = "1.1.0", default-features = false, features = ["std"] }
 syntect = { workspace = true }
