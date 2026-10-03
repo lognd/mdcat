@@ -74,6 +74,13 @@ mdcat collects every `.md` file below the directory, honouring `.gitignore` the 
 
 * A directory with a `SUMMARY.md` reads the documents it links, depth-first in the order of its nested lists, skipping draft chapters with empty links, external links, and links repeated later; documents it does not link are left out.
   Given a summary file instead of a directory, mdcat reads that summary.
+* Otherwise, if the directory's `README.md` or `index.md` is an index document, it comes first, followed by the documents and subdirectories it names, in the order it first names them, then everything it leaves out, by name.
+  A README or index is an index document if its tables and lists name at least half of the directory's other documents and subdirectories, and at least three of them (or all, if there are fewer); if both are, the one naming more wins, README.md on a tie.
+  It names a document by linking to it anywhere, or by writing its file name (like `goals.md` or `` `cli.md` ``) in a table cell or list item; file names in running prose do not count, since prose mentions files for many reasons other than reading order.
+  Naming a subdirectory, or its README or index, places the whole subdirectory there.
+  References to missing files, to anything outside the directory, and to URLs are skipped.
+  Documents the index leaves out are marked as unlisted, and the status line counts them.
+  Given a Markdown file other than `SUMMARY.md` instead of a directory, mdcat reads it as the index of its directory, however few documents it names.
 * Otherwise the directory's `README.md` (or else `index.md`) comes first, then its other documents and subdirectories by name, in natural order: case does not matter and numbers compare by value, so `ch2.md` comes before `ch10.md`.
 
 A document only appears once, where it is first placed.
@@ -81,7 +88,7 @@ A document only appears once, where it is first placed.
 On a terminal the book opens in mdcat's built-in pager, one document at a time; `--paginate`, `$MDCAT_PAGER` and `$PAGER` do not apply.
 The pager renders documents at the width mdcat would use (see `--columns` and `--full-width`), re-renders them when the terminal is resized, and draws inline images if the terminal supports the kitty, iTerm2 or Sixel graphics protocol (or the one `--image-protocol` names; `none` shows images as text).
 Each document keeps its scroll position while you move back and forth.
-A quiet status line at the bottom shows the document's title, its position in the book (for example `3/17`), where the reading order came from (`README + by path`, or the sources used, such as `by path, guide/SUMMARY.md`), how far down the document you are (`(END)` once its last line is visible, followed by the title of the next document if there is one), and a key hint.
+A quiet status line at the bottom shows the document's title, its position in the book (for example `3/17`), where the reading order came from (`README + by path`, or the sources used, such as `by path, guide/SUMMARY.md`, and how many documents an index left out, like `design/README.md +1 unlisted`), how far down the document you are (`(END)` once its last line is visible, followed by the title of the next document if there is one), and a key hint.
 
 kbd:[Right], kbd:[l]:: Next document in reading order.
 kbd:[Left], kbd:[h]:: Previous document in reading order.

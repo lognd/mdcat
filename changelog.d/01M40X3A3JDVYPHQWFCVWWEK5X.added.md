@@ -1,0 +1,1 @@
+mdcat: book mode follows the order a README.md or index.md lists its directory in tables or lists, by link or bare file name, when it names most of the directory; documents it leaves out follow, counted as unlisted in the status line.

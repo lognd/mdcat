@@ -133,9 +133,10 @@ $ mdcat docs                  # SUMMARY.md order, else README.md first, then by 
 $ mdcat --book docs/SUMMARY.md
 ```
 
-Each directory is ordered on its own: by the links in its `SUMMARY.md`, depth-first; without
-one, its `README.md` (or `index.md`) comes first and the other documents and subdirectories follow
-by name, in natural order (`ch2.md` before `ch10.md`).
+Each directory is ordered on its own: by the links in its `SUMMARY.md`, depth-first; else by the
+order its `README.md` (or `index.md`) lists the directory's documents in tables or lists, if it
+names most of them, with the ones it leaves out appended; else its `README.md` comes first and the
+other documents and subdirectories follow by name, in natural order (`ch2.md` before `ch10.md`).
 
 On a terminal the book opens in a built-in pager: <kbd>Left</kbd>/<kbd>Right</kbd> (or
 <kbd>h</kbd>/<kbd>l</kbd>) move to the previous or next document, <kbd>Up</kbd>/<kbd>Down</kbd>,
