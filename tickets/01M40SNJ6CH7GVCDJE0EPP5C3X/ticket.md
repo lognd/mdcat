@@ -2,7 +2,8 @@
 id = "01M40SNJ6CH7GVCDJE0EPP5C3X"
 title = "Built-in book pager with file-to-file navigation and status line"
 type = "story"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "high"
 points = 5
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
