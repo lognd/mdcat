@@ -1,0 +1,7 @@
+kind = "field"
+field = "scope"
+old = ["src/book/**", "src/args.rs", "src/main.rs", "src/lib.rs", "tests/**", "mdcat.1.adoc", "README.md", "changelog.d/**"]
+new = ["src/book/**", "src/args.rs", "src/main.rs", "src/lib.rs", "tests/**", "mdcat.1.adoc", "README.md", "changelog.d/**", "src/picker.rs", "src/toc.rs"]
+at = "2026-10-03T11:52:08Z"
+actor = "lognd"
+rev = 1

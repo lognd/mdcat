@@ -1,0 +1,28 @@
+kind = "evidence"
+accepts = [3]
+captured_at = "2026-10-03T12:00:00Z"
+digest = "39dbc8d03bd6dbf2373c824eb266fe2b06d314a7dd8238f68e5fd26e5a38ee80"
+exit_code = 0
+inline = """
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.34s
+────────────
+ Nextest run ID 02e3831d-d5af-46e3-8fc4-787e4eb67f86 with nextest profile: default
+    Starting 6 tests across 1 binary (3 binaries skipped)
+        PASS [   0.046s] (1/6) mdcat::book book_flag_refuses_several_arguments
+        PASS [   0.048s] (2/6) mdcat::book book_refuses_watch
+        PASS [   0.117s] (3/6) mdcat::book directory_without_summary_prints_readme_then_by_path
+        PASS [   0.125s] (4/6) mdcat::book directory_argument_prints_the_book_in_summary_order
+        PASS [   0.133s] (5/6) mdcat::book summary_file_without_flag_renders_just_that_file
+        PASS [   0.269s] (6/6) mdcat::book book_flag_with_summary_file_prints_the_book_in_summary_order
+────────────
+     Summary [   0.274s] 6 tests run: 6 passed, 0 skipped
+"""
+passed = true
+provider = "nextest"
+ref = "-p mdcat -E 'binary(book)'"
+size = 874
+status = "measured"
+tests = ["book_flag_refuses_several_arguments", "book_refuses_watch", "directory_without_summary_prints_readme_then_by_path", "directory_argument_prints_the_book_in_summary_order", "summary_file_without_flag_renders_just_that_file", "book_flag_with_summary_file_prints_the_book_in_summary_order"]
+at = "2026-10-03T12:00:00Z"
+actor = "lognd"
+rev = 1

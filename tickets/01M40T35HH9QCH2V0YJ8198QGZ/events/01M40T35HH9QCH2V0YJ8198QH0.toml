@@ -1,0 +1,11 @@
+kind = "create"
+title = "Report resource handler creation failure instead of unwrapping"
+type = "chore"
+category = "triage"
+priority = "low"
+idempotency_key = "mdcat-upstream-todo-resource-handler"
+scope = ["src/main.rs"]
+body = """Upstream's main.rs unwraps create_resource_handler with a bare TODO ("Handle this error properly"); a curl client build failure panics instead of exiting with an error message. Owned here so the TODO is tracked."""
+at = "2026-10-03T11:58:49Z"
+actor = "lognd"
+rev = 1
