@@ -2,7 +2,8 @@
 id = "01M40X39W6C9913YT4177C6S5M"
 title = "Resolve book order per directory, README first everywhere, natural sort"
 type = "story"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "high"
 points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
