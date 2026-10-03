@@ -2,9 +2,10 @@
 id = "01M40X3FP4PNVJKTY12NFC3E3D"
 start = "2026-10-03"
 end = "2026-10-05"
+ended = "2026-10-03"
 goal = "Book order auto-detection and the (END) marker"
-state = "planned"
+state = "closed"
 tickets = ["01M40X39MTR8EWQW4CSQ93A9XR", "01M40X39W6C9913YT4177C6S5M", "01M40X3A3JDVYPHQWFCVWWEK5X", "01M40X3AB22EBN7RDCC7T282Z9", "01M40X3AJJ0AFT20NF9N48WMBM"]
 created = "2026-10-03T12:51:25Z"
-updated = "2026-10-03T12:51:34Z"
+updated = "2026-10-03T13:25:30Z"
 +++
