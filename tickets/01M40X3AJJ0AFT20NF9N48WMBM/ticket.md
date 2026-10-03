@@ -8,7 +8,7 @@ points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T12:51:20Z"
-updated = "2026-10-03T13:24:44Z"
+updated = "2026-10-03T13:24:46Z"
 persona = "a reader of long documentation sets"
 capability = "switch between detected reading orders from the command line, config or inside the pager"
 outcome_text = "when detection guesses wrong I can pick the order myself"
@@ -37,5 +37,5 @@ bound = true
 
 [[acceptance]]
 text = "Given unlisted documents, When the table of contents opens, Then they appear under an Unlisted heading that cannot be selected"
-bound = false
+bound = true
 +++
