@@ -1,0 +1,7 @@
+kind = "field"
+field = "scope"
+old = ["FORK.md", "README.md", "Cargo.toml", "Cargo.lock", "tests/cli.rs"]
+new = ["FORK.md", "README.md", "Cargo.toml", "Cargo.lock", "tests/cli.rs", "scripts/sync-upstream.sh"]
+at = "2026-10-03T22:15:26Z"
+actor = "lognd"
+rev = 1
