@@ -2,7 +2,8 @@
 id = "01M40SNJACV0JNXVAZ4S0C53A2"
 title = "Table of contents overlay for the book pager"
 type = "story"
-category = "in-progress"
+category = "done"
+outcome = "done"
 priority = "medium"
 points = 3
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
