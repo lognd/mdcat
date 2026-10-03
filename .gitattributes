@@ -2,3 +2,4 @@
 * text eol=lf
 
 *.png -text
+tickets/**/ticket.md merge=frob-ledger
