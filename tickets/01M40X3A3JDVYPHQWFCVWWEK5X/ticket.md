@@ -8,7 +8,7 @@ points = 5
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T12:51:19Z"
-updated = "2026-10-03T13:11:38Z"
+updated = "2026-10-03T13:11:40Z"
 persona = "a reader of long documentation sets"
 capability = "have mdcat follow the reading order a README table or list already gives"
 outcome_text = "doc sets without a SUMMARY.md, like frob-v2's design docs, read in their intended order"
@@ -29,7 +29,7 @@ bound = true
 
 [[acceptance]]
 text = "Given an index referencing fewer than 3 docs or under half of its directory, When auto order runs, Then it is not treated as an index"
-bound = false
+bound = true
 
 [[acceptance]]
 text = "Given docs in the directory the index does not list, When the book resolves, Then they follow the listed ones by path and are marked unlisted"
