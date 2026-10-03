@@ -8,12 +8,12 @@ points = 1
 parent = "01M40SN4N73X0X52REQ2V7JZCX"
 reporter = "lognd"
 created = "2026-10-03T22:13:48Z"
-updated = "2026-10-03T22:15:26Z"
+updated = "2026-10-03T22:20:07Z"
 persona = "the owner of the fork"
 capability = "see at a glance that this is a fork, what it adds and how to update from upstream"
 outcome_text = "I keep my features while merging upstream releases cleanly"
 idempotency_key = "mdcat-fork-identity"
-scope = ["FORK.md", "README.md", "Cargo.toml", "Cargo.lock", "tests/cli.rs", "scripts/sync-upstream.sh"]
+scope = ["FORK.md", "README.md", "Cargo.toml", "Cargo.lock", "tests/cli.rs", "scripts/sync-upstream.sh", "scripts/test-sync-upstream.sh", "tests/fork.rs", "changelog.d/.added.md"]
 
 [[acceptance]]
 text = "Given the repository, When FORK.md is read, Then it lists the fork's features, how to install the fork, how to merge upstream and which files conflict, where to report issues, and the release-tag warning"
