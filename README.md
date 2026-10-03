@@ -1,3 +1,10 @@
+<!-- lognd-fork-note:start -->
+> **This is [lognd/mdcat](https://github.com/lognd/mdcat), a fork of
+> [BIRSAx2/mdcat](https://github.com/BIRSAx2/mdcat)** that adds a book mode for reading whole sets
+> of documentation in order, with its own pager. See [FORK.md](FORK.md) for what it adds, how to
+> install it, and how it follows upstream. The rest of this README is upstream's.
+<!-- lognd-fork-note:end -->
+
 # mdcat
 
 Fancy `cat` for Markdown (that is, [CommonMark][]):
@@ -122,35 +129,6 @@ To fuzzy-find and open a Markdown file below the current directory (requires [fz
 $ mdpick
 $ mdpick docs  # search below docs instead
 ```
-
-### Reading a book
-
-Point `mdcat` at a directory, or pass `--book` (`-b`) with an [mdBook]-style `SUMMARY.md`, to read
-a whole set of documents in order:
-
-```console
-$ mdcat docs                  # SUMMARY.md order, else README.md first, then by name
-$ mdcat --book docs/SUMMARY.md
-```
-
-Each directory is ordered on its own: by the links in its `SUMMARY.md`, depth-first; else by the
-order its `README.md` (or `index.md`) lists the directory's documents in tables or lists, if it
-names most of them, with the ones it leaves out appended; else its `README.md` comes first, then
-documents by frontmatter weight (`nav_order`, `weight` or `sidebar_position`), then the rest by
-name, in natural order (`ch2.md` before `ch10.md`).
-
-On a terminal the book opens in a built-in pager: <kbd>Left</kbd>/<kbd>Right</kbd> (or
-<kbd>h</kbd>/<kbd>l</kbd>) move to the previous or next document, <kbd>Up</kbd>/<kbd>Down</kbd>,
-<kbd>PgUp</kbd>/<kbd>PgDn</kbd>, <kbd>Space</kbd> and <kbd>g</kbd>/<kbd>G</kbd> scroll, and
-<kbd>q</kbd> quits. Each document remembers where you left it, and a status line shows the
-document's title and position in the book. <kbd>Tab</kbd> opens a table of contents of the whole
-book: pick a document with the arrows and <kbd>Enter</kbd>, or close it again with
-<kbd>Tab</kbd> or <kbd>Esc</kbd>. When detection picks the wrong order, <kbd>o</kbd> switches to
-the next one that applies, and `--order auto|summary|index|frontmatter|path` (or
-`defaults.book_order` in the config file) chooses one up front. Piped or redirected, every document is rendered in
-reading order instead.
-
-[mdBook]: https://rust-lang.github.io/mdBook/format/summary.html
 
 ### `mdless` and `mdpick`
 
