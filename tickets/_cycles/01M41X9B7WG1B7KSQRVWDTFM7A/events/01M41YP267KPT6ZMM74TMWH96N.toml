@@ -1,0 +1,6 @@
+kind = "cycle"
+op = "retro"
+text = "Goal met: FORK.md, README fork note, +lognd version, sync-upstream script with a scenario test. Land surfaced a stray empty-named fragment (removed), frob-written home paths in ticket events (scrubbed) and unimplemented done checks (dropped from frob.toml with the owner's approval)."
+at = "2026-10-03T22:38:17Z"
+actor = "lognd"
+rev = 1
